@@ -1,0 +1,234 @@
+.container {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+  
+  .header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  
+  .headerText h1 {
+    font-size: 1.875rem;
+    font-weight: bold;
+    margin: 0;
+  }
+  
+  .headerText p {
+    color: var(--muted-foreground);
+    margin: 0.25rem 0 0 0;
+  }
+  
+  .addButton {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background: var(--primary);
+    color: var(--primary-foreground);
+    border: none;
+    border-radius: 0.375rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  
+  .addButton:hover {
+    background: var(--primary-hover);
+  }
+  
+  .ordersGrid {
+    display: grid;
+    gap: 1rem;
+  }
+  
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 0.5rem;
+    overflow: hidden;
+  }
+  
+  .cardHeader {
+    padding: 1.5rem;
+    border-bottom: 1px solid var(--border);
+  }
+  
+  .cardHeaderContent {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+  }
+  
+  .orderInfo {
+    flex: 1;
+  }
+  
+  .orderTitle {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin: 0 0 0.25rem 0;
+  }
+  
+  .orderDetails {
+    font-size: 0.875rem;
+    color: var(--muted-foreground);
+    margin: 0.125rem 0;
+  }
+  
+  .cardContent {
+    padding: 1.5rem;
+  }
+  
+  .itemsList {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+  }
+  
+  .itemsTitle {
+    font-size: 0.875rem;
+    font-weight: 500;
+    margin: 0 0 0.5rem 0;
+  }
+  
+  .item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 0.875rem;
+    background: var(--muted);
+    padding: 0.5rem;
+    border-radius: 0.375rem;
+  }
+  
+  .itemQuantity {
+    color: var(--muted-foreground);
+  }
+  
+  .notesSection {
+    margin: 1rem 0;
+  }
+  
+  .notesTitle {
+    font-size: 0.875rem;
+    font-weight: 500;
+    margin: 0 0 0.25rem 0;
+  }
+  
+  .notesText {
+    font-size: 0.875rem;
+    color: var(--muted-foreground);
+    margin: 0;
+  }
+  
+  .metadata {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 0.875rem;
+    color: var(--muted-foreground);
+    padding-top: 1rem;
+    border-top: 1px solid var(--border);
+    margin-top: 1rem;
+  }
+  
+  .actions {
+    display: flex;
+    gap: 0.5rem;
+    padding-top: 0.5rem;
+  }
+  
+  .confirmButton {
+    flex: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background: var(--primary);
+    color: var(--primary-foreground);
+    border: none;
+    border-radius: 0.375rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  
+  .confirmButton:hover {
+    background: var(--primary-hover);
+  }
+  
+  .cancelButton {
+    flex: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background: var(--destructive);
+    color: var(--destructive-foreground);
+    border: none;
+    border-radius: 0.375rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  
+  .cancelButton:hover {
+    background: var(--destructive-hover);
+  }
+  
+  .confirmedInfo {
+    font-size: 0.875rem;
+    color: var(--muted-foreground);
+  }
+  
+  .emptyState {
+    padding: 3rem 0;
+    text-align: center;
+  }
+  
+  .emptyIcon {
+    width: 3rem;
+    height: 3rem;
+    margin: 0 auto 1rem;
+    color: var(--muted-foreground);
+  }
+  
+  .emptyText {
+    color: var(--muted-foreground);
+    margin: 0;
+  }
+  
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.25rem 0.625rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    border-radius: 9999px;
+    white-space: nowrap;
+  }
+  
+  .badgeDefault {
+    background: var(--primary);
+    color: var(--primary-foreground);
+  }
+  
+  .badgeSecondary {
+    background: var(--secondary);
+    color: var(--secondary-foreground);
+  }
+  
+  .badgeDestructive {
+    background: var(--destructive);
+    color: var(--destructive-foreground);
+  }
+  

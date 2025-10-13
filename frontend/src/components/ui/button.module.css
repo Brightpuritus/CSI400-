@@ -1,0 +1,117 @@
+.button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    white-space: nowrap;
+    border-radius: 0.375rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    transition: all 0.2s;
+    cursor: pointer;
+    border: none;
+    font-family: inherit;
+  }
+  
+  .button:focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+  }
+  
+  .button:disabled {
+    pointer-events: none;
+    opacity: 0.5;
+  }
+  
+  .button svg {
+    width: 1rem;
+    height: 1rem;
+    flex-shrink: 0;
+  }
+  
+  /* Variants */
+  .default {
+    background-color: var(--primary);
+    color: var(--primary-foreground);
+  }
+  
+  .default:hover:not(:disabled) {
+    background-color: var(--primary);
+    opacity: 0.9;
+  }
+  
+  .destructive {
+    background-color: var(--destructive);
+    color: var(--destructive-foreground);
+  }
+  
+  .destructive:hover:not(:disabled) {
+    background-color: var(--destructive);
+    opacity: 0.9;
+  }
+  
+  .outline {
+    border: 1px solid var(--input);
+    background-color: var(--background);
+    color: var(--foreground);
+  }
+  
+  .outline:hover:not(:disabled) {
+    background-color: var(--accent);
+    color: var(--accent-foreground);
+  }
+  
+  .secondary {
+    background-color: var(--secondary);
+    color: var(--secondary-foreground);
+  }
+  
+  .secondary:hover:not(:disabled) {
+    opacity: 0.8;
+  }
+  
+  .ghost {
+    background-color: transparent;
+    color: var(--foreground);
+  }
+  
+  .ghost:hover:not(:disabled) {
+    background-color: var(--accent);
+    color: var(--accent-foreground);
+  }
+  
+  .link {
+    background-color: transparent;
+    color: var(--primary);
+    text-decoration: underline;
+    text-underline-offset: 4px;
+  }
+  
+  .link:hover:not(:disabled) {
+    text-decoration: none;
+  }
+  
+  /* Sizes */
+  .sm {
+    height: 2.25rem;
+    padding: 0 0.75rem;
+    border-radius: 0.375rem;
+  }
+  
+  .default-size {
+    height: 2.5rem;
+    padding: 0.5rem 1rem;
+  }
+  
+  .lg {
+    height: 2.75rem;
+    padding: 0.5rem 2rem;
+    border-radius: 0.375rem;
+  }
+  
+  .icon {
+    height: 2.5rem;
+    width: 2.5rem;
+    padding: 0;
+  }
+  
