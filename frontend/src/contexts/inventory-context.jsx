@@ -4,131 +4,73 @@ import { createContext, useContext, useState, useEffect } from "react"
 
 const InventoryContext = createContext(undefined)
 
-const INITIAL_PRODUCTS = [
-  {
-    id: "1",
-    name: "ขวดน้ำรีไซเคิล",
-    description: "ขวดน้ำที่เป็นมิตรกับสิ่งแวดล้อม",
-    category: "เครื่องใช้",
-    quantity: 150,
-    minStockLevel: 50,
-    price: 250,
-    unit: "ชิ้น",
-    expirationDate: "2026-12-31",
-    imageUrl: "/reusable-water-bottle.png",
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-  {
-    id: "2",
-    name: "ขนมปังโฮลวีท",
-    description: "ขนมปังโฮลวีทสดใหม่",
-    category: "อาหาร",
-    quantity: 30,
-    minStockLevel: 20,
-    price: 45,
-    unit: "ก้อน",
-    expirationDate: "2025-02-15",
-    imageUrl: "/rustic-bread-loaf.png",
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-  {
-    id: "3",
-    name: "นมสด",
-    description: "นมสดพาสเจอร์ไรส์",
-    category: "อาหาร",
-    quantity: 45,
-    minStockLevel: 30,
-    price: 52,
-    unit: "กล่อง",
-    expirationDate: "2025-01-25",
-    imageUrl: "/milk-carton.png",
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-]
-
 export function InventoryProvider({ children }) {
   const [products, setProducts] = useState([])
 
-  // Load products from localStorage on mount
+  // โหลดข้อมูลสินค้าเมื่อ mount
   useEffect(() => {
-    const stored = localStorage.getItem("products")
-    if (stored) {
-      setProducts(JSON.parse(stored))
-    } else {
-      setProducts(INITIAL_PRODUCTS)
-      localStorage.setItem("products", JSON.stringify(INITIAL_PRODUCTS))
-    }
+    fetch("/api/products")
+      .then(res => res.json())
+      .then(setProducts)
+      .catch(() => setProducts([]))
   }, [])
 
-  // Save products to localStorage whenever they change
-  useEffect(() => {
-    if (products.length > 0) {
-      localStorage.setItem("products", JSON.stringify(products))
-    }
-  }, [products])
-
-  const addProduct = (product) => {
-    const newProduct = {
-      ...product,
-      id: Date.now().toString(),
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    }
-    setProducts((prev) => [...prev, newProduct])
+  // เพิ่มสินค้า
+  const addProduct = async (product) => {
+    const res = await fetch("/api/products", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(product),
+    })
+    const newProduct = await res.json()
+    setProducts(prev => [...prev, newProduct])
   }
 
-  const updateProduct = (id, updates) => {
-    setProducts((prev) =>
-      prev.map((p) => (p.id === id ? { ...p, ...updates, updatedAt: new Date().toISOString() } : p)),
-    )
+  // ลบสินค้า
+  const deleteProduct = async (id) => {
+    await fetch(`/api/products/${id}`, { method: "DELETE" })
+    setProducts(prev => prev.filter(p => p.id !== id))
   }
 
-  const deleteProduct = (id) => {
-    setProducts((prev) => prev.filter((p) => p.id !== id))
+  // แก้ไขสินค้า
+  const updateProduct = async (id, updates) => {
+    const res = await fetch(`/api/products/${id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(updates),
+    })
+    const updated = await res.json()
+    setProducts(prev => prev.map(p => p.id === id ? updated : p))
   }
 
-  const getProduct = (id) => {
-    return products.find((p) => p.id === id)
+  // ฟังก์ชันช่วยเหลือ
+  function getLowStockProducts(threshold = 10) {
+    return products.filter(product => product.quantity <= threshold)
   }
-
-  const getLowStockProducts = () => {
-    return products.filter((p) => p.quantity <= p.minStockLevel)
-  }
-
-  const getExpiringProducts = (days) => {
-    const futureDate = new Date()
-    futureDate.setDate(futureDate.getDate() + days)
-
-    return products.filter((p) => {
-      const expDate = new Date(p.expirationDate)
-      return expDate <= futureDate && expDate > new Date()
+  function getExpiringProducts(days = 30) {
+    const now = new Date()
+    const thresholdDate = new Date(now.getTime() + days * 24 * 60 * 60 * 1000)
+    return products.filter(product => {
+      if (!product.expirationDate) return false
+      const expiry = new Date(product.expirationDate)
+      return expiry <= thresholdDate
     })
   }
 
   return (
-    <InventoryContext.Provider
-      value={{
-        products,
-        addProduct,
-        updateProduct,
-        deleteProduct,
-        getProduct,
-        getLowStockProducts,
-        getExpiringProducts,
-      }}
-    >
+    <InventoryContext.Provider value={{
+      products,
+      addProduct,
+      deleteProduct,
+      updateProduct,
+      getLowStockProducts,
+      getExpiringProducts,
+    }}>
       {children}
     </InventoryContext.Provider>
   )
 }
 
 export function useInventory() {
-  const context = useContext(InventoryContext)
-  if (!context) {
-    throw new Error("useInventory must be used within InventoryProvider")
-  }
-  return context
+  return useContext(InventoryContext)
 }

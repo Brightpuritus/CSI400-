@@ -1,0 +1,14 @@
+[
+  {
+    "name": "Puritus",
+    "description": "ไอไบ้",
+    "category": "ปลา",
+    "price": 5,
+    "quantity": 1,
+    "unit": "ลิตร",
+    "minStock": 1,
+    "expiryDate": "2025-10-14",
+    "image": "https://f.ptcdn.info/561/067/000/q3jb5rmgq4OlgGDI30r-o.jpg",
+    "id": "1760371880762"
+  }
+]

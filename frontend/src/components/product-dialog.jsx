@@ -1,27 +1,15 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { useInventory } from "@/contexts/inventory-context"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import { useToast } from "@/hooks/use-toast"
+import React, { useState, useEffect } from "react"
+import { useInventory } from "../contexts/inventory-context"
 import styles from "./product-dialog.module.css"
 
-/**
- * @param {Object} props
- * @param {boolean} props.open
- * @param {Function} props.onOpenChange
- * @param {Object|null} props.product
- * @param {'view'|'edit'|'add'} props.mode
- */
-export function ProductDialog({ open, onOpenChange, product, mode = "view" }) {
+export function ProductDialog({ open, onClose, product, mode = "add" }) {
   const { addProduct, updateProduct, deleteProduct } = useInventory()
-  const { toast } = useToast()
+  const isEdit = mode === "edit"
+  const isView = mode === "view"
 
-  const [formData, setFormData] = useState({
+  const [form, setForm] = useState({
     name: "",
     description: "",
     category: "",
@@ -34,20 +22,20 @@ export function ProductDialog({ open, onOpenChange, product, mode = "view" }) {
   })
 
   useEffect(() => {
-    if (product && (mode === "view" || mode === "edit")) {
-      setFormData({
-        name: product.name,
-        description: product.description,
-        category: product.category,
-        price: product.price.toString(),
-        quantity: product.quantity.toString(),
-        unit: product.unit,
-        minStock: product.minStock.toString(),
-        expiryDate: product.expiryDate,
+    if (product && (isEdit || isView)) {
+      setForm({
+        name: product.name || "",
+        description: product.description || "",
+        category: product.category || "",
+        price: product.price?.toString() || "",
+        quantity: product.quantity?.toString() || "",
+        unit: product.unit || "",
+        minStock: product.minStock?.toString() || "",
+        expiryDate: product.expiryDate || "",
         image: product.image || "",
       })
     } else if (mode === "add") {
-      setFormData({
+      setForm({
         name: "",
         description: "",
         category: "",
@@ -61,197 +49,191 @@ export function ProductDialog({ open, onOpenChange, product, mode = "view" }) {
     }
   }, [product, mode, open])
 
-  const handleSubmit = (e) => {
+  const handleChange = e => {
+    const { name, value } = e.target
+    setForm(f => ({ ...f, [name]: value }))
+  }
+
+  const handleSubmit = async e => {
     e.preventDefault()
-
     const productData = {
-      name: formData.name,
-      description: formData.description,
-      category: formData.category,
-      price: Number.parseFloat(formData.price),
-      quantity: Number.parseInt(formData.quantity),
-      unit: formData.unit,
-      minStock: Number.parseInt(formData.minStock),
-      expiryDate: formData.expiryDate,
-      image: formData.image,
+      name: form.name,
+      description: form.description,
+      category: form.category,
+      price: Number.parseFloat(form.price),
+      quantity: Number.parseInt(form.quantity),
+      unit: form.unit,
+      minStock: Number.parseInt(form.minStock),
+      expiryDate: form.expiryDate,
+      image: form.image,
     }
-
     if (mode === "add") {
-      addProduct(productData)
-      toast({
-        title: "เพิ่มสินค้าสำเร็จ",
-        description: `เพิ่ม ${productData.name} เข้าสู่คลังสินค้าแล้ว`,
-      })
-    } else if (mode === "edit" && product) {
-      updateProduct(product.id, productData)
-      toast({
-        title: "แก้ไขสินค้าสำเร็จ",
-        description: `แก้ไขข้อมูล ${productData.name} แล้ว`,
-      })
+      await addProduct(productData)
+    } else if (isEdit && product) {
+      await updateProduct(product.id, productData)
     }
-
-    onOpenChange(false)
+    onClose()
   }
 
-  const handleDelete = () => {
+  const handleDelete = async () => {
     if (product && window.confirm("คุณแน่ใจหรือไม่ที่จะลบสินค้านี้?")) {
-      deleteProduct(product.id)
-      toast({
-        title: "ลบสินค้าสำเร็จ",
-        description: `ลบ ${product.name} ออกจากคลังสินค้าแล้ว`,
-        variant: "destructive",
-      })
-      onOpenChange(false)
+      await deleteProduct(product.id)
+      onClose()
     }
   }
 
-  const isViewMode = mode === "view"
+  if (!open) return null
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className={styles.content}>
-        <DialogHeader>
-          <DialogTitle>{mode === "add" ? "เพิ่มสินค้าใหม่" : mode === "edit" ? "แก้ไขสินค้า" : "รายละเอียดสินค้า"}</DialogTitle>
-        </DialogHeader>
-
-        <form onSubmit={handleSubmit} className={styles.form}>
-          <div className={styles.grid}>
-            <div className={styles.colSpan2}>
-              <Label htmlFor="name">ชื่อสินค้า</Label>
-              <Input
-                id="name"
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                disabled={isViewMode}
-                required
-              />
-            </div>
-
-            <div className={styles.colSpan2}>
-              <Label htmlFor="description">รายละเอียด</Label>
-              <Textarea
-                id="description"
-                value={formData.description}
-                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                disabled={isViewMode}
-                rows={3}
-              />
-            </div>
-
-            <div className={styles.formGroup}>
-              <Label htmlFor="category">หมวดหมู่</Label>
-              <Input
-                id="category"
-                value={formData.category}
-                onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                disabled={isViewMode}
-                required
-              />
-            </div>
-
-            <div className={styles.formGroup}>
-              <Label htmlFor="price">ราคา (บาท)</Label>
-              <Input
-                id="price"
-                type="number"
-                step="0.01"
-                value={formData.price}
-                onChange={(e) => setFormData({ ...formData, price: e.target.value })}
-                disabled={isViewMode}
-                required
-              />
-            </div>
-
-            <div className={styles.formGroup}>
-              <Label htmlFor="quantity">จำนวน</Label>
-              <Input
-                id="quantity"
-                type="number"
-                value={formData.quantity}
-                onChange={(e) => setFormData({ ...formData, quantity: e.target.value })}
-                disabled={isViewMode}
-                required
-              />
-            </div>
-
-            <div className={styles.formGroup}>
-              <Label htmlFor="unit">หน่วย</Label>
-              <Input
-                id="unit"
-                value={formData.unit}
-                onChange={(e) => setFormData({ ...formData, unit: e.target.value })}
-                disabled={isViewMode}
-                placeholder="ชิ้น, กล่อง, ขวด"
-                required
-              />
-            </div>
-
-            <div className={styles.formGroup}>
-              <Label htmlFor="minStock">สต็อกขั้นต่ำ</Label>
-              <Input
-                id="minStock"
-                type="number"
-                value={formData.minStock}
-                onChange={(e) => setFormData({ ...formData, minStock: e.target.value })}
-                disabled={isViewMode}
-                required
-              />
-            </div>
-
-            <div className={styles.formGroup}>
-              <Label htmlFor="expiryDate">วันหมดอายุ</Label>
-              <Input
-                id="expiryDate"
-                type="date"
-                value={formData.expiryDate}
-                onChange={(e) => setFormData({ ...formData, expiryDate: e.target.value })}
-                disabled={isViewMode}
-                required
-              />
-            </div>
-
-            <div className={styles.colSpan2}>
-              <Label htmlFor="image">URL รูปภาพ</Label>
-              <Input
-                id="image"
-                value={formData.image}
-                onChange={(e) => setFormData({ ...formData, image: e.target.value })}
-                disabled={isViewMode}
-                placeholder="https://example.com/image.jpg"
-              />
-            </div>
+    <div className={styles.dialogBackdrop} onClick={onClose}>
+      <form className={styles.dialogContent} onClick={e => e.stopPropagation()} onSubmit={handleSubmit}>
+        <h2>
+          {mode === "add"
+            ? "เพิ่มสินค้าใหม่"
+            : isEdit
+            ? "แก้ไขสินค้า"
+            : "รายละเอียดสินค้า"}
+        </h2>
+        <div className={styles.grid}>
+          <div className={styles.colSpan2}>
+            <label htmlFor="name">ชื่อสินค้า</label>
+            <input
+              id="name"
+              name="name"
+              value={form.name}
+              onChange={handleChange}
+              disabled={isView}
+              required
+            />
           </div>
-
-          <DialogFooter className={styles.footer}>
-            {mode === "view" && (
-              <>
-                <Button type="button" variant="destructive" onClick={handleDelete}>
-                  ลบสินค้า
-                </Button>
-                <Button type="button" onClick={() => onOpenChange(false)}>
-                  ปิด
-                </Button>
-              </>
-            )}
-            {mode === "edit" && (
-              <>
-                <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-                  ยกเลิก
-                </Button>
-                <Button type="submit">บันทึก</Button>
-              </>
-            )}
-            {mode === "add" && (
-              <>
-                <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-                  ยกเลิก
-                </Button>
-                <Button type="submit">เพิ่มสินค้า</Button>
-              </>
-            )}
-          </DialogFooter>
-        </form>
-      </DialogContent>
-    </Dialog>
+          <div className={styles.colSpan2}>
+            <label htmlFor="description">รายละเอียด</label>
+            <textarea
+              id="description"
+              name="description"
+              value={form.description}
+              onChange={handleChange}
+              disabled={isView}
+              rows={3}
+            />
+          </div>
+          <div className={styles.formGroup}>
+            <label htmlFor="category">หมวดหมู่</label>
+            <input
+              id="category"
+              name="category"
+              value={form.category}
+              onChange={handleChange}
+              disabled={isView}
+              required
+            />
+          </div>
+          <div className={styles.formGroup}>
+            <label htmlFor="price">ราคา (บาท)</label>
+            <input
+              id="price"
+              name="price"
+              type="number"
+              step="0.01"
+              value={form.price}
+              onChange={handleChange}
+              disabled={isView}
+              required
+            />
+          </div>
+          <div className={styles.formGroup}>
+            <label htmlFor="quantity">จำนวน</label>
+            <input
+              id="quantity"
+              name="quantity"
+              type="number"
+              value={form.quantity}
+              onChange={handleChange}
+              disabled={isView}
+              required
+            />
+          </div>
+          <div className={styles.formGroup}>
+            <label htmlFor="unit">หน่วย</label>
+            <input
+              id="unit"
+              name="unit"
+              value={form.unit}
+              onChange={handleChange}
+              disabled={isView}
+              placeholder="ชิ้น, กล่อง, ขวด"
+              required
+            />
+          </div>
+          <div className={styles.formGroup}>
+            <label htmlFor="minStock">สต็อกขั้นต่ำ</label>
+            <input
+              id="minStock"
+              name="minStock"
+              type="number"
+              value={form.minStock}
+              onChange={handleChange}
+              disabled={isView}
+              required
+            />
+          </div>
+          <div className={styles.formGroup}>
+            <label htmlFor="expiryDate">วันหมดอายุ</label>
+            <input
+              id="expiryDate"
+              name="expiryDate"
+              type="date"
+              value={form.expiryDate}
+              onChange={handleChange}
+              disabled={isView}
+              required
+            />
+          </div>
+          <div className={styles.colSpan2}>
+            <label htmlFor="image">URL รูปภาพ</label>
+            <input
+              id="image"
+              name="image"
+              value={form.image}
+              onChange={handleChange}
+              disabled={isView}
+              placeholder="https://example.com/image.jpg"
+            />
+          </div>
+        </div>
+        <div className={styles.footer}>
+          {isView && (
+            <>
+              <button type="button" className={styles.deleteButton} onClick={handleDelete}>
+                ลบสินค้า
+              </button>
+              <button type="button" onClick={onClose}>
+                ปิด
+              </button>
+            </>
+          )}
+          {isEdit && (
+            <>
+              <button type="button" onClick={onClose}>
+                ยกเลิก
+              </button>
+              <button type="submit" className={styles.saveButton}>
+                บันทึก
+              </button>
+            </>
+          )}
+          {mode === "add" && (
+            <>
+              <button type="button" onClick={onClose}>
+                ยกเลิก
+              </button>
+              <button type="submit" className={styles.saveButton}>
+                เพิ่มสินค้า
+              </button>
+            </>
+          )}
+        </div>
+      </form>
+    </div>
   )
 }

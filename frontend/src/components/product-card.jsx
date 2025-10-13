@@ -1,12 +1,14 @@
 "use client"
 
-import { Calendar, Package } from "lucide-react"
+import { Calendar, Package, Pencil, Trash2 } from "lucide-react"
 import styles from "./product-card.module.css"
+import { useInventory } from "../contexts/inventory-context"
 
-export function ProductCard({ product, onClick }) {
+export function ProductCard({ product, onClick, onEdit }) {
   const isLowStock = product.quantity <= product.minStock
   const isExpiringSoon = new Date(product.expiryDate) <= new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
   const isExpired = new Date(product.expiryDate) < new Date()
+  const { deleteProduct } = useInventory()
 
   return (
     <div className={styles.card} onClick={onClick}>
@@ -47,6 +49,30 @@ export function ProductCard({ product, onClick }) {
             {isExpired ? "หมดอายุแล้ว" : isExpiringSoon ? "ใกล้หมดอายุ" : "หมดอายุ"}:{" "}
             {new Date(product.expiryDate).toLocaleDateString("th-TH")}
           </span>
+        </div>
+
+        {/* เพิ่มปุ่มแก้ไข/ลบ */}
+        <div className={styles.actionRow}>
+          <button
+            className={styles.editButton}
+            onClick={e => {
+              e.stopPropagation()
+              if (onEdit) onEdit(product)
+            }}
+            title="แก้ไข"
+          >
+            <Pencil size={18} />
+          </button>
+          <button
+            className={styles.deleteButton}
+            onClick={e => {
+              e.stopPropagation()
+              if (window.confirm("ต้องการลบสินค้านี้ใช่หรือไม่?")) deleteProduct(product.id)
+            }}
+            title="ลบ"
+          >
+            <Trash2 size={18} />
+          </button>
         </div>
       </div>
     </div>

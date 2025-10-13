@@ -11,17 +11,17 @@ import { Plus, Search } from "lucide-react"
 import styles from "./InventoryPage.module.css"
 
 export default function InventoryPage() {
-  const { products, deleteProduct } = useInventory()
+  const { products } = useInventory()
+  const [dialogOpen, setDialogOpen] = useState(false)
+  const [selectedProduct, setSelectedProduct] = useState(null)
+  const [dialogMode, setDialogMode] = useState("add")
   const [searchQuery, setSearchQuery] = useState("")
   const [categoryFilter, setCategoryFilter] = useState("all")
-  const [dialogOpen, setDialogOpen] = useState(false)
-  const [selectedProduct, setSelectedProduct] = useState(undefined)
-  const [dialogMode, setDialogMode] = useState("view")
 
-  // Get unique categories
+  // หมวดหมู่ทั้งหมด
   const categories = ["all", ...new Set(products.map((p) => p.category))]
 
-  // Filter products
+  // ฟิลเตอร์สินค้า
   const filteredProducts = products.filter((product) => {
     const matchesSearch =
       product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -30,15 +30,17 @@ export default function InventoryPage() {
     return matchesSearch && matchesCategory
   })
 
+  // เปิด dialog เพิ่มสินค้า
   const handleAddProduct = () => {
-    setSelectedProduct(undefined)
+    setSelectedProduct(null)
     setDialogMode("add")
     setDialogOpen(true)
   }
 
-  const handleViewProduct = (product) => {
+  // เปิด dialog แก้ไขสินค้า
+  const handleEditProduct = (product) => {
     setSelectedProduct(product)
-    setDialogMode("view")
+    setDialogMode("edit")
     setDialogOpen(true)
   }
 
@@ -94,12 +96,21 @@ export default function InventoryPage() {
           ) : (
             <div className={styles.productsGrid}>
               {filteredProducts.map((product) => (
-                <ProductCard key={product.id} product={product} onClick={() => handleViewProduct(product)} />
+                <ProductCard
+                  key={product.id}
+                  product={product}
+                  onEdit={handleEditProduct}
+                />
               ))}
             </div>
           )}
 
-          <ProductDialog open={dialogOpen} onOpenChange={setDialogOpen} product={selectedProduct} mode={dialogMode} />
+          <ProductDialog
+            open={dialogOpen}
+            onClose={() => setDialogOpen(false)}
+            product={selectedProduct}
+            mode={dialogMode}
+          />
         </div>
       </AppLayout>
     </ProtectedRoute>
