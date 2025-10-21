@@ -1,14 +1,22 @@
 "use client"
 
-import { Calendar, Package, Pencil, Trash2 } from "lucide-react"
+import { Calendar, Package, Pencil, Trash2, X, CheckCircle2 } from "lucide-react"
 import styles from "./product-card.module.css"
 import { useInventory } from "../contexts/inventory-context"
+import { useState } from "react"
 
 export function ProductCard({ product, onClick, onEdit }) {
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const { deleteProduct } = useInventory()
+
   const isLowStock = product.quantity <= product.minStock
   const isExpiringSoon = new Date(product.expiryDate) <= new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
   const isExpired = new Date(product.expiryDate) < new Date()
-  const { deleteProduct } = useInventory()
+
+  const handleDelete = () => {
+    deleteProduct(product.id)
+    setShowDeleteConfirm(false)
+  }
 
   return (
     <div className={styles.card} onClick={onClick}>
@@ -51,7 +59,7 @@ export function ProductCard({ product, onClick, onEdit }) {
           </span>
         </div>
 
-        {/* เพิ่มปุ่มแก้ไข/ลบ */}
+        {/* ปุ่มแก้ไข / ลบ */}
         <div className={styles.actionRow}>
           <button
             className={styles.editButton}
@@ -67,13 +75,31 @@ export function ProductCard({ product, onClick, onEdit }) {
             className={styles.deleteButton}
             onClick={e => {
               e.stopPropagation()
-              if (window.confirm("ต้องการลบสินค้านี้ใช่หรือไม่?")) deleteProduct(product.id)
+              setShowDeleteConfirm(true)
             }}
             title="ลบ"
           >
             <Trash2 size={18} />
           </button>
         </div>
+
+        {/* Popup ยืนยันการลบ */}
+        {showDeleteConfirm && (
+          <div className={styles.popupOverlay}>
+            <div className={styles.popupBox}>
+              <h4>ยืนยันการลบสินค้า</h4>
+              <p>คุณต้องการลบ “{product.name}” หรือไม่?</p>
+              <div className={styles.popupActions}>
+                <button className={styles.cancelBtn} onClick={() => setShowDeleteConfirm(false)}>
+                  <X size={16} /> ยกเลิก
+                </button>
+                <button className={styles.confirmBtn} onClick={handleDelete}>
+                  <CheckCircle2 size={16} /> ยืนยัน
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )
