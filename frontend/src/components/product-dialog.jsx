@@ -207,14 +207,14 @@ export function ProductDialog({ open, onClose, product, mode = "add" }) {
               <button type="button" className={styles.deleteButton} onClick={handleDelete}>
                 ลบสินค้า
               </button>
-              <button type="button" onClick={onClose}>
+              <button type="button" onClick={onClose} className={styles.cancelButton}>
                 ปิด
               </button>
             </>
           )}
           {isEdit && (
             <>
-              <button type="button" onClick={onClose}>
+              <button type="button" onClick={onClose} className={styles.cancelButton}>
                 ยกเลิก
               </button>
               <button type="submit" className={styles.saveButton}>
@@ -224,7 +224,7 @@ export function ProductDialog({ open, onClose, product, mode = "add" }) {
           )}
           {mode === "add" && (
             <>
-              <button type="button" onClick={onClose}>
+              <button type="button" onClick={onClose} className={styles.cancelButton}> 
                 ยกเลิก
               </button>
               <button type="submit" className={styles.saveButton}>
