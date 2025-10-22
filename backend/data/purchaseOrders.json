@@ -1,0 +1,42 @@
+[
+  {
+    "supplier": "555555",
+    "items": [
+      {
+        "productId": "1761057126968",
+        "productName": "",
+        "quantity": 5,
+        "unitPrice": 5,
+        "totalPrice": 25
+      }
+    ],
+    "notes": "",
+    "id": "1761142438633",
+    "totalAmount": 25,
+    "status": "confirmed",
+    "createdAt": "2025-10-22T14:13:58.634Z",
+    "updatedAt": "2025-10-22T14:14:38.020Z",
+    "confirmedBy": "ผู้ดูแลระบบ",
+    "confirmedAt": "2025-10-22T14:14:38.015Z"
+  },
+  {
+    "supplier": "555555",
+    "items": [
+      {
+        "productId": "1761057126968",
+        "productName": "",
+        "quantity": 5,
+        "unitPrice": 5,
+        "totalPrice": 25
+      }
+    ],
+    "notes": "",
+    "id": "1761142498646",
+    "totalAmount": 25,
+    "status": "confirmed",
+    "createdAt": "2025-10-22T14:14:58.646Z",
+    "updatedAt": "2025-10-22T14:15:00.622Z",
+    "confirmedBy": "ผู้ดูแลระบบ",
+    "confirmedAt": "2025-10-22T14:15:00.613Z"
+  }
+]

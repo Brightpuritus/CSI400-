@@ -11,7 +11,7 @@ import { useToast } from "../hooks/use-toast"
 import styles from "./PurchaseOrdersPage.module.css"
 
 export default function PurchaseOrdersPage() {
-  const { purchaseOrders, confirmPurchaseOrder, cancelPurchaseOrder } = usePurchaseOrders()
+  const { purchaseOrders, confirmPurchaseOrder, cancelPurchaseOrder, deletePurchaseOrder } = usePurchaseOrders()
   const { user } = useAuth()
   const { toast } = useToast()
   const [dialogOpen, setDialogOpen] = useState(false)
@@ -91,7 +91,7 @@ export default function PurchaseOrdersPage() {
                         <p className={styles.orderSupplier}>ผู้จัดจำหน่าย: {order.supplier}</p>
                       </div>
                       <div className={styles.orderAmount}>
-                        <p>฿{order.totalAmount.toLocaleString()}</p>
+                        <p>฿{(order.totalAmount ?? 0).toLocaleString?.() ?? String(order.totalAmount ?? 0)}</p>
                       </div>
                     </div>
                   </div>
@@ -102,7 +102,7 @@ export default function PurchaseOrdersPage() {
                         <div key={index} className={styles.item}>
                           <span>{item.productName}</span>
                           <span className={styles.itemQuantity}>
-                            {item.quantity} x ฿{item.unitPrice.toLocaleString()} = ฿{item.totalPrice.toLocaleString()}
+                            {item.quantity ?? 0} x ฿{(item.unitPrice ?? 0).toLocaleString?.() ?? String(item.unitPrice ?? 0)} = ฿{(item.totalPrice ?? 0).toLocaleString?.() ?? String(item.totalPrice ?? 0)}
                           </span>
                         </div>
                       ))}
@@ -116,8 +116,8 @@ export default function PurchaseOrdersPage() {
                     )}
 
                     <div className={styles.metadata}>
-                      <span>สร้างโดย: {order.createdBy}</span>
-                      <span>{new Date(order.createdAt).toLocaleDateString("th-TH")}</span>
+                      <span>สร้างโดย: {order.createdBy ?? "-"}</span>
+                      <span>{order.createdAt ? new Date(order.createdAt).toLocaleDateString("th-TH") : "-"}</span>
                     </div>
 
                     {order.status === "pending" && (
@@ -133,11 +133,20 @@ export default function PurchaseOrdersPage() {
                       </div>
                     )}
 
-                    {order.status === "confirmed" && (
-                      <div className={styles.confirmedInfo}>
-                        ยืนยันโดย: {order.confirmedBy} • {new Date(order.confirmedAt).toLocaleDateString("th-TH")}
-                      </div>
-                    )}
+                                    {order.status === "confirmed" && (
+                                      <div className={styles.confirmedInfo}>
+                                        ยืนยันโดย: {order.confirmedBy ?? "-"} • {order.confirmedAt ? new Date(order.confirmedAt).toLocaleDateString("th-TH") : "-"}
+                                      </div>
+                                    )}
+
+                                    {order.status === "cancelled" && (
+                                      <div className={styles.cancelledInfo}>
+                                        <span>ยกเลิกแล้ว</span>
+                                        <button className={styles.deleteButton} onClick={() => deletePurchaseOrder(order.id)}>
+                                          ลบ
+                                        </button>
+                                      </div>
+                                    )}
                   </div>
                 </div>
               ))

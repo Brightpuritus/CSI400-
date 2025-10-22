@@ -19,7 +19,7 @@ import styles from "./create-purchase-order-dialog.module.css"
  * @param {Function} props.onOpenChange
  */
 export function CreatePurchaseOrderDialog({ open, onOpenChange }) {
-  const { createPurchaseOrder } = usePurchaseOrders()
+  const { addPurchaseOrder } = usePurchaseOrders()
   const { products } = useInventory()
   const { toast } = useToast()
 
@@ -50,7 +50,7 @@ export function CreatePurchaseOrderDialog({ open, onOpenChange }) {
       pricePerUnit: Number.parseFloat(item.pricePerUnit),
     }))
 
-    createPurchaseOrder({
+    addPurchaseOrder({
       supplier,
       items: orderItems,
       notes,
