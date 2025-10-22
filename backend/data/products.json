@@ -10,5 +10,17 @@
     "expiryDate": "2026-01-22",
     "image": "https://i.ytimg.com/vi/tt13V86G-zM/oar2.jpg?sqp=-oaymwEYCJUDENAFSFqQAgHyq4qpAwcIARUAAIhC&rs=AOn4CLC297cqecmipM_Qt32XNQJV33eNpw",
     "id": "1761057126968"
+  },
+  {
+    "name": "ปลามาได",
+    "description": "สด สะอาด",
+    "category": "ปลา",
+    "price": 1000,
+    "quantity": 100,
+    "unit": "kg",
+    "minStock": 10,
+    "expiryDate": "2025-10-31",
+    "image": "https://www.thammachartseafood.com/cdn/shop/products/Madai_1080x.jpg?v=1671588713",
+    "id": "1761143141687"
   }
 ]

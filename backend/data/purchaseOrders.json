@@ -38,5 +38,23 @@
     "updatedAt": "2025-10-22T14:15:00.622Z",
     "confirmedBy": "ผู้ดูแลระบบ",
     "confirmedAt": "2025-10-22T14:15:00.613Z"
+  },
+  {
+    "supplier": "japanfishshop",
+    "items": [
+      {
+        "productId": "1761143141687",
+        "productName": "",
+        "quantity": 200,
+        "unitPrice": 500,
+        "totalPrice": 100000
+      }
+    ],
+    "notes": "",
+    "id": "1761143217303",
+    "totalAmount": 100000,
+    "status": "pending",
+    "createdAt": "2025-10-22T14:26:57.303Z",
+    "updatedAt": "2025-10-22T14:26:57.303Z"
   }
 ]
