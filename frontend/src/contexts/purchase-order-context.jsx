@@ -58,7 +58,8 @@ export function PurchaseOrderProvider({ children }) {
         body: JSON.stringify(order),
       })
       const created = await res.json()
-      setPurchaseOrders((prev) => [...prev, created])
+      setPurchaseOrders((prev) => [created, ...prev])
+
     } catch (e) {
       // fallback: create locally
       const orderNumber = `PO-${new Date().getFullYear()}-${String(purchaseOrders.length + 1).padStart(3, "0")}`
@@ -86,7 +87,8 @@ export function PurchaseOrderProvider({ children }) {
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       }
-      setPurchaseOrders((prev) => [...prev, newOrder])
+      setPurchaseOrders((prev) => [newOrder, ...prev])
+
     }
   }
 

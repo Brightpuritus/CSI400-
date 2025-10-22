@@ -55,6 +55,18 @@ export default function PurchaseOrdersPage() {
     return <span className={`${styles.badge} ${badgeClass}`}>{text}</span>
   }
 
+  const statusRank = (s) => (s === "pending" ? 0 : s === "confirmed" ? 1 : 2)
+
+  const orderedOrders = [...purchaseOrders].sort((a, b) => {
+  const ra = statusRank(a.status)
+  const rb = statusRank(b.status)
+  if (ra !== rb) return ra - rb
+  // ใหม่สุดก่อนในแต่ละกลุ่ม
+  const da = a.createdAt ? new Date(a.createdAt).getTime() : 0
+  const db = b.createdAt ? new Date(b.createdAt).getTime() : 0
+  return db - da
+})
+
   return (
     <ProtectedRoute>
       <AppLayout>
@@ -79,7 +91,7 @@ export default function PurchaseOrdersPage() {
                 </div>
               </div>
             ) : (
-              purchaseOrders.map((order) => (
+              orderedOrders.map((order) => (
                 <div key={order.id} className={styles.card}>
                   <div className={styles.cardHeader}>
                     <div className={styles.cardHeaderContent}>
