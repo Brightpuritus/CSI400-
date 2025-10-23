@@ -1,0 +1,92 @@
+{
+  "withdrawalOrders": [
+    {
+      "id": "WO-1761149471858",
+      "orderNumber": "WD2025001",
+      "department": "10",
+      "purpose": "10000",
+      "requestedBy": "admin",
+      "createdAt": "2025-10-22T16:11:11.858Z",
+      "status": "confirmed",
+      "items": [
+        {
+          "productId": "1761143141687",
+          "quantity": 1
+        }
+      ],
+      "notes": null,
+      "confirmedBy": "admin",
+      "confirmedAt": "2025-10-22T16:19:24.921Z"
+    },
+    {
+      "id": "WO-1761150000297",
+      "orderNumber": "WD2025002",
+      "department": "thrtrthrh",
+      "purpose": "trhrhrh",
+      "requestedBy": "admin",
+      "createdAt": "2025-10-22T16:20:00.297Z",
+      "status": "confirmed",
+      "items": [
+        {
+          "productId": "1761057126968",
+          "quantity": 3
+        },
+        {
+          "productId": "1761057126968",
+          "quantity": 3
+        }
+      ],
+      "notes": null,
+      "confirmedBy": "admin",
+      "confirmedAt": "2025-10-22T16:20:22.495Z"
+    },
+    {
+      "id": "WO-1761150352502",
+      "orderNumber": "WD2025003",
+      "department": "10",
+      "purpose": "10000",
+      "requestedBy": "admin",
+      "createdAt": "2025-10-22T16:25:52.503Z",
+      "status": "pending",
+      "items": [
+        {
+          "productId": "1761143141687",
+          "quantity": 10
+        }
+      ],
+      "notes": null
+    },
+    {
+      "id": "WO-1761150359209",
+      "orderNumber": "WD2025004",
+      "department": "10",
+      "purpose": "10000",
+      "requestedBy": "admin",
+      "createdAt": "2025-10-22T16:25:59.209Z",
+      "status": "pending",
+      "items": [
+        {
+          "productId": "1761143141687",
+          "quantity": 10
+        }
+      ],
+      "notes": null
+    },
+    {
+      "id": "WO-1761150367152",
+      "orderNumber": "WD2025005",
+      "department": "10",
+      "purpose": "10",
+      "requestedBy": "admin",
+      "createdAt": "2025-10-22T16:26:07.152Z",
+      "status": "pending",
+      "items": [
+        {
+          "productId": "1761143141687",
+          "quantity": 10
+        }
+      ],
+      "notes": null
+    }
+  ]
+}
