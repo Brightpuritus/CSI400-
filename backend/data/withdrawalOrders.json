@@ -87,6 +87,40 @@
         }
       ],
       "notes": null
+    },
+    {
+      "id": "WO-1761221624011",
+      "orderNumber": "WD2025006",
+      "department": "10",
+      "purpose": "ำำำ",
+      "requestedBy": "admin",
+      "createdAt": "2025-10-23T12:13:44.011Z",
+      "status": "pending",
+      "items": [
+        {
+          "productId": "1761143141687",
+          "productName": "ปลามาได",
+          "quantity": 10
+        }
+      ],
+      "notes": "10"
+    },
+    {
+      "id": "WO-1761221839887",
+      "orderNumber": "WD2025007",
+      "department": "10",
+      "purpose": "1000000000",
+      "requestedBy": "admin",
+      "createdAt": "2025-10-23T12:17:19.889Z",
+      "status": "pending",
+      "items": [
+        {
+          "productId": "1761057126968",
+          "productName": "มาม่าผัดน้ำเปล่า",
+          "quantity": 10
+        }
+      ],
+      "notes": "101010"
     }
   ]
 }

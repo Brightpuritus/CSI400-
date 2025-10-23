@@ -1,117 +1,91 @@
 "use client"
 
 import { createContext, useContext, useState, useEffect } from "react"
-import { useInventory } from "./inventory-context"
+import axios from 'axios'
 
 const WithdrawalOrderContext = createContext(undefined)
 
-const INITIAL_ORDERS = [
-  {
-    id: "1",
-    orderNumber: "WO-2025-001",
-    department: "แผนกขาย",
-    purpose: "ใช้สำหรับงานอีเวนท์",
-    status: "pending",
-    items: [{ productId: "1", productName: "ขวดน้ำรีไซเคิล", quantity: 20 }],
-    notes: "ต้องการภายในสัปดาห์นี้",
-    requestedBy: "พนักงาน",
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-]
-
 export function WithdrawalOrderProvider({ children }) {
   const [withdrawalOrders, setWithdrawalOrders] = useState([])
-  const { updateProduct, getProduct } = useInventory()
+  const [products, setProducts] = useState({})
 
   useEffect(() => {
-    const stored = localStorage.getItem("withdrawalOrders")
-    if (stored) {
-      setWithdrawalOrders(JSON.parse(stored))
-    } else {
-      setWithdrawalOrders(INITIAL_ORDERS)
-      localStorage.setItem("withdrawalOrders", JSON.stringify(INITIAL_ORDERS))
-    }
+    loadProducts()
+    loadWithdrawalOrders()
   }, [])
 
-  useEffect(() => {
-    if (withdrawalOrders.length > 0) {
-      localStorage.setItem("withdrawalOrders", JSON.stringify(withdrawalOrders))
+  const loadProducts = async () => {
+    try {
+      const response = await axios.get('http://localhost:5000/api/products')
+      const productsMap = {}
+      response.data.forEach(product => {
+        productsMap[product.id] = product.name
+      })
+      setProducts(productsMap)
+    } catch (error) {
+      console.error('Failed to load products:', error)
     }
-  }, [withdrawalOrders])
-
-  const addWithdrawalOrder = (order) => {
-    const orderNumber = `WO-${new Date().getFullYear()}-${String(withdrawalOrders.length + 1).padStart(3, "0")}`
-    const newOrder = {
-      ...order,
-      id: Date.now().toString(),
-      orderNumber,
-      status: "pending",
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    }
-    setWithdrawalOrders((prev) => [...prev, newOrder])
   }
 
-  const confirmWithdrawalOrder = (id, confirmedBy) => {
-    const order = withdrawalOrders.find((o) => o.id === id)
-    if (!order) return false
-
-    // Check if all items have sufficient stock
-    for (const item of order.items) {
-      const product = getProduct(item.productId)
-      if (!product || product.quantity < item.quantity) {
-        return false
+  const loadWithdrawalOrders = async () => {
+    try {
+      const response = await axios.get('http://localhost:5000/api/withdrawal-orders')
+      if (response.data && response.data.withdrawalOrders) {
+        setWithdrawalOrders(response.data.withdrawalOrders)
       }
+    } catch (error) {
+      console.error('Failed to load withdrawal orders:', error)
     }
+  }
 
-    // Update inventory quantities
-    order.items.forEach((item) => {
-      const product = getProduct(item.productId)
-      if (product) {
-        updateProduct(item.productId, {
-          quantity: product.quantity - item.quantity,
-        })
+  const createWithdrawalOrder = async (orderData) => {
+    try {
+      const response = await axios.post('http://localhost:5000/api/withdrawal-orders', {
+        ...orderData,
+        items: orderData.items.map(item => ({
+          productId: item.productId,
+          productName: products[item.productId], // Add product name
+          quantity: parseInt(item.quantity)
+        }))
+      })
+      
+      if (response.data) {
+        setWithdrawalOrders(prev => [...prev, response.data])
+        return true
       }
-    })
-
-    setWithdrawalOrders((prev) =>
-      prev.map((o) =>
-        o.id === id
-          ? {
-              ...o,
-              status: "confirmed",
-              confirmedBy,
-              confirmedAt: new Date().toISOString(),
-              updatedAt: new Date().toISOString(),
-            }
-          : o,
-      ),
-    )
-
-    return true
+      return false
+    } catch (error) {
+      console.error('Failed to create withdrawal order:', error)
+      return false
+    }
   }
 
-  const cancelWithdrawalOrder = (id) => {
-    setWithdrawalOrders((prev) =>
-      prev.map((o) => (o.id === id ? { ...o, status: "cancelled", updatedAt: new Date().toISOString() } : o)),
-    )
-  }
-
-  const getWithdrawalOrder = (id) => {
-    return withdrawalOrders.find((o) => o.id === id)
+  const confirmWithdrawalOrder = async (orderId, confirmedBy) => {
+    try {
+      const response = await axios.post(`http://localhost:5000/api/withdrawal-orders/${orderId}/confirm`, {
+        confirmedBy
+      })
+      
+      if (response.data) {
+        setWithdrawalOrders(prev => 
+          prev.map(order => order.id === orderId ? response.data : order)
+        )
+        return true
+      }
+      return false
+    } catch (error) {
+      console.error('Failed to confirm withdrawal order:', error)
+      return false
+    }
   }
 
   return (
-    <WithdrawalOrderContext.Provider
-      value={{
-        withdrawalOrders,
-        addWithdrawalOrder,
-        confirmWithdrawalOrder,
-        cancelWithdrawalOrder,
-        getWithdrawalOrder,
-      }}
-    >
+    <WithdrawalOrderContext.Provider value={{
+      withdrawalOrders,
+      createWithdrawalOrder,
+      confirmWithdrawalOrder,
+      products // Add products to context
+    }}>
       {children}
     </WithdrawalOrderContext.Provider>
   )
