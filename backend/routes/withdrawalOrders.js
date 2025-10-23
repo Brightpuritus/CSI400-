@@ -34,6 +34,10 @@ function writeWithdrawalOrders(orders) {
   fs.writeFileSync(DATA_FILE, JSON.stringify(orders, null, 2), 'utf8')
 }
 
+function writeProducts(products) {
+  fs.writeFileSync(PRODUCTS_FILE, JSON.stringify(products, null, 2), 'utf8')
+}
+
 // Get all withdrawal orders
 router.get('/', (req, res) => {
   const orders = readWithdrawalOrders()
@@ -79,20 +83,45 @@ router.post('/', (req, res) => {
 router.post('/:id/confirm', (req, res) => {
   try {
     const orders = readWithdrawalOrders()
+    const products = readProducts()
     const orderIndex = orders.withdrawalOrders.findIndex(o => o.id === req.params.id)
 
     if (orderIndex === -1) {
       return res.status(404).json({ error: 'Order not found' })
     }
 
+    const order = orders.withdrawalOrders[orderIndex]
+
+    // Check if enough quantity available
+    const hasEnoughQuantity = order.items.every(item => {
+      const product = products.find(p => p.id === item.productId)
+      return product && product.quantity >= item.quantity
+    })
+
+    if (!hasEnoughQuantity) {
+      return res.status(400).json({ error: 'ไม่มีสินค้าเพียงพอ' })
+    }
+
+    // Update product quantities
+    order.items.forEach(item => {
+      const productIndex = products.findIndex(p => p.id === item.productId)
+      if (productIndex !== -1) {
+        products[productIndex].quantity -= item.quantity
+      }
+    })
+
+    // Update order status
     orders.withdrawalOrders[orderIndex] = {
-      ...orders.withdrawalOrders[orderIndex],
+      ...order,
       status: 'confirmed',
       confirmedBy: req.body.confirmedBy,
       confirmedAt: new Date().toISOString()
     }
 
+    // Save changes
     writeWithdrawalOrders(orders)
+    writeProducts(products)
+
     res.json(orders.withdrawalOrders[orderIndex])
   } catch (error) {
     console.error('Error confirming order:', error)

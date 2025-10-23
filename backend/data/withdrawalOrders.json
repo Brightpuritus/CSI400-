@@ -47,14 +47,16 @@
       "purpose": "10000",
       "requestedBy": "admin",
       "createdAt": "2025-10-22T16:25:52.503Z",
-      "status": "pending",
+      "status": "confirmed",
       "items": [
         {
           "productId": "1761143141687",
           "quantity": 10
         }
       ],
-      "notes": null
+      "notes": null,
+      "confirmedBy": "admin",
+      "confirmedAt": "2025-10-23T12:23:22.266Z"
     },
     {
       "id": "WO-1761150359209",
@@ -121,6 +123,63 @@
         }
       ],
       "notes": "101010"
+    },
+    {
+      "id": "WO-1761223678017",
+      "orderNumber": "WD2025008",
+      "department": "10",
+      "purpose": "10",
+      "requestedBy": "admin",
+      "createdAt": "2025-10-23T12:47:58.017Z",
+      "status": "confirmed",
+      "items": [
+        {
+          "productId": "1761057126968",
+          "productName": "มาม่าผัดน้ำเปล่า",
+          "quantity": 10
+        }
+      ],
+      "notes": "10",
+      "confirmedBy": "admin",
+      "confirmedAt": "2025-10-23T12:48:00.988Z"
+    },
+    {
+      "id": "WO-1761223748113",
+      "orderNumber": "WD2025009",
+      "department": "20",
+      "purpose": "20",
+      "requestedBy": "admin",
+      "createdAt": "2025-10-23T12:49:08.113Z",
+      "status": "confirmed",
+      "items": [
+        {
+          "productId": "1761143141687",
+          "productName": "ปลามาได",
+          "quantity": 10
+        }
+      ],
+      "notes": "20",
+      "confirmedBy": "admin",
+      "confirmedAt": "2025-10-23T12:49:11.317Z"
+    },
+    {
+      "id": "WO-1761223789285",
+      "orderNumber": "WD2025010",
+      "department": "10",
+      "purpose": "5",
+      "requestedBy": "admin",
+      "createdAt": "2025-10-23T12:49:49.285Z",
+      "status": "confirmed",
+      "items": [
+        {
+          "productId": "1761143141687",
+          "productName": "ปลามาได",
+          "quantity": 5
+        }
+      ],
+      "notes": "10",
+      "confirmedBy": "admin",
+      "confirmedAt": "2025-10-23T12:49:50.965Z"
     }
   ]
 }

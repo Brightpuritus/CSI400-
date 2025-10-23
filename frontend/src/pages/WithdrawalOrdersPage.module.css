@@ -159,8 +159,14 @@
   }
   
   .itemQuantity {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+  }
+  
+  .availableQuantity {
     color: var(--muted-foreground);
-    font-size: 0.875rem;
+    font-size: 0.75rem;
   }
   
   .notesSection {

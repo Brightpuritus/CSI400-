@@ -61,10 +61,17 @@ export function CreateWithdrawalOrderDialog({ open, onOpenChange }) {
     })
   }
 
-  const handleSubmit = (e) => {
+  const hasEnoughQuantity = () => {
+    return items.every(item => {
+      const product = products.find(p => p.id === item.productId)
+      return product && product.quantity >= parseInt(item.quantity)
+    })
+  }
+
+  const handleSubmit = async (e) => {
     e.preventDefault()
 
-    if (hasInvalidQuantities()) {
+    if (!hasEnoughQuantity()) {
       toast({
         title: "ไม่สามารถสร้างใบเบิกได้",
         description: "จำนวนสินค้าที่เบิกเกินกว่าสต็อกที่มี",
