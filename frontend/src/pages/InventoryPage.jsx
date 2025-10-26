@@ -19,13 +19,16 @@ export default function InventoryPage() {
   const [categoryFilter, setCategoryFilter] = useState("all")
 
   // หมวดหมู่ทั้งหมด
-  const categories = ["all", ...new Set(products.map((p) => p.category))]
+  const safeProducts = Array.isArray(products) ? products : []
+  const categories = ["all", ...new Set((safeProducts ?? []).map((p) => p.category))]
 
   // ฟิลเตอร์สินค้า
-  const filteredProducts = products.filter((product) => {
+  const filteredProducts = (safeProducts ?? []).filter((product) => {
+    const name = product?.name ?? ""
+    const description = product?.description ?? ""
     const matchesSearch =
-      product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      product.description.toLowerCase().includes(searchQuery.toLowerCase())
+      name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      description.toLowerCase().includes(searchQuery.toLowerCase())
     const matchesCategory = categoryFilter === "all" || product.category === categoryFilter
     return matchesSearch && matchesCategory
   })

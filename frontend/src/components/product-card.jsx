@@ -40,7 +40,9 @@ export function ProductCard({ product, onClick, onEdit }) {
 
         <div className={styles.priceRow}>
           <div>
-            <p className={styles.price}>฿{product.price.toLocaleString()}</p>
+            <p className={styles.price}>
+              ฿{(typeof product.price === "number" ? product.price : 0).toLocaleString()}
+            </p>
             <p className={styles.stock}>
               คงเหลือ: {product.quantity} {product.unit}
             </p>

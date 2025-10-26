@@ -11,7 +11,10 @@ export function InventoryProvider({ children }) {
   useEffect(() => {
     fetch("/api/products")
       .then(res => res.json())
-      .then(setProducts)
+      .then(data => {
+        if (Array.isArray(data)) setProducts(data)
+        else setProducts([]) // fallback ถ้า error
+      })
       .catch(() => setProducts([]))
   }, [])
 
@@ -45,14 +48,16 @@ export function InventoryProvider({ children }) {
 
   // ฟังก์ชันช่วยเหลือ
   function getLowStockProducts(threshold = 10) {
-    return products.filter(product => product.quantity <= threshold)
+    const safeProducts = Array.isArray(products) ? products : []
+    return safeProducts.filter(product => product.quantity <= threshold)
   }
   function getExpiringProducts(days = 30) {
     const now = new Date()
     const thresholdDate = new Date(now.getTime() + days * 24 * 60 * 60 * 1000)
-    return products.filter(product => {
-      if (!product.expirationDate) return false
-      const expiry = new Date(product.expirationDate)
+    const safeProducts = Array.isArray(products) ? products : []
+    return safeProducts.filter(product => {
+      if (!product.expiryDate) return false
+      const expiry = new Date(product.expiryDate)
       return expiry <= thresholdDate
     })
   }
