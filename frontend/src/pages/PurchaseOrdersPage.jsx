@@ -79,6 +79,8 @@ export default function PurchaseOrdersPage() {
     return db - da;
   });
 
+  const safeOrders = Array.isArray(purchaseOrders) ? purchaseOrders : [];
+
   const handleDeleteClick = (order) => {
     setOrderToDelete(order);
     setDeleteDialogOpen(true);
@@ -124,7 +126,7 @@ export default function PurchaseOrdersPage() {
                 </div>
               </div>
             ) : (
-              orderedOrders.map((order) => (
+              safeOrders.map((order) => (
                 <div key={order.id} className={styles.card}>
                   <div className={styles.cardHeader}>
                     <div className={styles.cardHeaderContent}>
@@ -149,7 +151,7 @@ export default function PurchaseOrdersPage() {
                   <div className={styles.cardContent}>
                     <div className={styles.itemsList}>
                       <p className={styles.itemsTitle}>รายการสินค้า:</p>
-                      {order.items.map((item, index) => (
+                      {(order.items ?? []).map((item, index) => (
                         <div key={index} className={styles.item}>
                           <span>{item.productName}</span>
                           <span className={styles.itemQuantity}>

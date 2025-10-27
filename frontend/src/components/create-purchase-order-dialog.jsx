@@ -43,24 +43,30 @@ export function CreatePurchaseOrderDialog({ open, onOpenChange }) {
 
   const handleSubmit = (e) => {
     e.preventDefault()
-
+    const now = new Date().toISOString()
     const orderItems = items.map((item) => ({
       productId: item.productId,
-      quantity: Number.parseInt(item.quantity),
-      pricePerUnit: Number.parseFloat(item.pricePerUnit),
+      productName: products.find(p => String(p.id) === String(item.productId))?.name ?? "",
+      quantity: Number(item.quantity),
+      unitPrice: Number(item.pricePerUnit),
+      totalPrice: Number(item.quantity) * Number(item.pricePerUnit)
     }))
-
+    const totalAmount = orderItems.reduce((sum, item) => sum + item.totalPrice, 0)
     addPurchaseOrder({
       supplier,
-      items: orderItems,
       notes,
+      status: "pending",
+      createdAt: now,
+      updatedAt: now,
+      confirmedBy: null,
+      confirmedAt: null,
+      totalAmount,
+      items: orderItems
     })
-
     toast({
       title: "สร้างใบสั่งซื้อสำเร็จ",
-      description: `สร้างใบสั่งซื้อจาก ${supplier} แล้ว`,
+      description: `สร้างใบสั่งซื้อกับ ${supplier} แล้ว`,
     })
-
     // Reset form
     setSupplier("")
     setNotes("")
