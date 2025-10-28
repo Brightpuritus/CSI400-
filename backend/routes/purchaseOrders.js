@@ -81,52 +81,121 @@ router.post("/", async (req, res) => {
   }
 })
 
-// UPDATE
 router.put("/:id", async (req, res) => {
   const conn = await pool.getConnection()
   try {
     await conn.beginTransaction()
+
     const {
       supplier,
       notes,
       status,
       confirmedBy,
-      confirmedAt,
-      items = []
+      confirmedAt: confirmedAtRaw,
+      items = [],
     } = req.body
 
-    const updatedAt = new Date()
-    const totalAmount = items.reduce((sum, i) => sum + (Number(i.quantity) * Number(i.unitPrice)), 0)
+    const toDateOrNull = (v) => {
+      if (!v) return null
+      const d = new Date(v)
+      return isNaN(d.getTime()) ? null : d
+    }
 
-    await conn.query(
-      "UPDATE purchase_orders SET supplier=?, notes=?, status=?, updatedAt=?, confirmedBy=?, confirmedAt=?, totalAmount=? WHERE id=?",
-      [supplier, notes, status, updatedAt, confirmedBy || null, confirmedAt || null, totalAmount, req.params.id]
+    const updatedAt = new Date()
+    const confirmedAt = toDateOrNull(confirmedAtRaw)
+
+    // 🧮 ดึงสินค้าปัจจุบันในฐานข้อมูลก่อน
+    const [existingItems] = await conn.query(
+      "SELECT * FROM purchase_order_items WHERE orderId = ?",
+      [req.params.id]
     )
 
-    await conn.query("DELETE FROM purchase_order_items WHERE orderId = ?", [req.params.id])
+    // 🧾 สร้าง map ของสินค้าปัจจุบันเพื่อเปรียบเทียบ
+    const existingMap = new Map()
+    for (const it of existingItems) {
+      existingMap.set(it.productId, it)
+    }
+
+    // 🧮 คำนวณราคารวมใหม่
+    let totalAmount = 0
     for (const it of items) {
+      totalAmount += Number(it.quantity) * Number(it.unitPrice)
+    }
+
+    // ✅ อัปเดตข้อมูลหลักในตาราง purchase_orders
+    await conn.query(
+      `UPDATE purchase_orders
+       SET supplier=?, notes=?, status=?, updatedAt=?, confirmedBy=?, confirmedAt=?, totalAmount=?
+       WHERE id=?`,
+      [supplier, notes, status, updatedAt, confirmedBy || null, confirmedAt, totalAmount, req.params.id]
+    )
+
+    // ✅ วนลูปดูสินค้าที่ส่งมาจาก frontend
+    for (const it of items) {
+      const existing = existingMap.get(it.productId)
+      const totalPrice = Number(it.quantity) * Number(it.unitPrice)
+
+      if (existing) {
+        // 🔄 ถ้ามีอยู่แล้ว → อัปเดตจำนวนและราคารวม
+        await conn.query(
+          `UPDATE purchase_order_items
+           SET quantity=?, unitPrice=?, totalPrice=?, productName=?
+           WHERE orderId=? AND productId=?`,
+          [
+            Number(it.quantity),
+            Number(it.unitPrice),
+            totalPrice,
+            it.productName || existing.productName,
+            req.params.id,
+            it.productId,
+          ]
+        )
+        existingMap.delete(it.productId)
+      } else {
+        // ➕ ถ้ายังไม่มี → เพิ่มใหม่
+        await conn.query(
+          `INSERT INTO purchase_order_items (orderId, productId, productName, quantity, unitPrice, totalPrice)
+           VALUES (?, ?, ?, ?, ?, ?)`,
+          [
+            req.params.id,
+            it.productId,
+            it.productName || it.name || "",
+            Number(it.quantity),
+            Number(it.unitPrice),
+            totalPrice,
+          ]
+        )
+      }
+    }
+
+    // ❌ ลบสินค้าที่ไม่ได้ส่งมา (แปลว่าถูกลบออก)
+    for (const [productId] of existingMap) {
       await conn.query(
-        "INSERT INTO purchase_order_items (orderId, productId, productName, quantity, unitPrice, totalPrice) VALUES (?, ?, ?, ?, ?, ?)",
-        [
-          req.params.id,
-          it.productId,
-          it.productName || it.name || "",
-          Number(it.quantity) || 0,
-          Number(it.unitPrice ?? it.pricePerUnit) || 0,
-          (Number(it.quantity) || 0) * (Number(it.unitPrice ?? it.pricePerUnit) || 0)
-        ]
+        "DELETE FROM purchase_order_items WHERE orderId=? AND productId=?",
+        [req.params.id, productId]
       )
     }
 
     await conn.commit()
-    res.json({ id: req.params.id, supplier, notes, status, updatedAt, confirmedBy, confirmedAt, totalAmount, items })
+    res.json({
+      id: req.params.id,
+      supplier,
+      notes,
+      status,
+      confirmedBy,
+      confirmedAt,
+      totalAmount,
+      items,
+    })
   } catch (err) {
     await conn.rollback()
+    console.error("❌ Error updating purchase order:", err)
     res.status(400).json({ error: err.message })
   } finally {
     conn.release()
   }
 })
+
 
 // DELETE
 router.delete("/:id", async (req, res) => {

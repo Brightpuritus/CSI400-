@@ -95,38 +95,70 @@ export function PurchaseOrderProvider({ children }) {
   const confirmPurchaseOrder = async (id, confirmedBy) => {
     const order = purchaseOrders.find((o) => o.id === id)
     if (!order) return
-
-    // Update inventory quantities locally
-    order.items.forEach((item) => {
-      const product = products.find((p) => p.id === item.productId)
-      if (product) {
-        updateProduct(item.productId, {
-          quantity: (product.quantity || 0) + (item.quantity || 0),
-        })
+  
+    // 1️⃣ อัปเดต inventory locally
+    const updatedProducts = products.map((product) => {
+      const matchingItem = order.items.find((i) => i.productId === product.id)
+      if (matchingItem) {
+        return {
+          ...product,
+          quantity: (product.quantity || 0) + (matchingItem.quantity || 0),
+        }
       }
+      return product
     })
-
-    const updated = {
+  
+    // 2️⃣ เพิ่มสินค้าที่ไม่มีใน inventory
+    const newProducts = order.items.filter(
+      (item) => !products.some((p) => p.id === item.productId)
+    ).map((item) => ({
+      id: item.productId,
+      name: item.productName,
+      description: item.description || "",
+      category: item.category || "",
+      price: item.unitPrice || 0,
+      quantity: item.quantity || 0,
+      unit: item.unit || "ชิ้น",
+      minStock: 1,
+      expiryDate: item.expiryDate || null,
+    }))
+  
+    // 3️⃣ อัปเดต inventory state
+    updatedProducts.forEach((p) => updateProduct(p.id, p))
+    newProducts.forEach((p) =>
+      updateProduct(p.id, p) // หรือเรียก addProduct ขึ้นอยู่กับ context
+    )
+  
+    // 4️⃣ สร้าง object updated ของ order
+    const updatedOrder = {
       ...order,
       status: "confirmed",
       confirmedBy,
       confirmedAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
+      // ส่ง items เดิมทั้งหมดไป backend
+      items: order.items,
     }
-
-    // Try to persist to backend
+  
+    // 5️⃣ ส่งไป backend
     try {
       const res = await fetch(`/api/purchase-orders/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(updated),
+        body: JSON.stringify(updatedOrder),
       })
       const serverUpdated = await res.json()
-      setPurchaseOrders((prev) => prev.map((o) => (o.id === id ? serverUpdated : o)))
+      setPurchaseOrders((prev) =>
+        prev.map((o) => (o.id === id ? serverUpdated : o))
+      )
     } catch (e) {
-      setPurchaseOrders((prev) => prev.map((o) => (o.id === id ? updated : o)))
+      // fallback: อัปเดต local state
+      setPurchaseOrders((prev) =>
+        prev.map((o) => (o.id === id ? updatedOrder : o))
+      )
     }
   }
+  
 
   const cancelPurchaseOrder = async (id) => {
     const updated = { ...(getPurchaseOrder(id) || {}), status: "cancelled", updatedAt: new Date().toISOString() }
