@@ -141,9 +141,7 @@ export default function PurchaseOrdersPage() {
                       </div>
                       <div className={styles.orderAmount}>
                         <p>
-                          ฿
-                          {(order.totalAmount ?? 0).toLocaleString?.() ??
-                            String(order.totalAmount ?? 0)}
+                          ฿{Number(order.totalAmount ?? 0).toLocaleString("th-TH", { minimumFractionDigits: 2 })}
                         </p>
                       </div>
                     </div>

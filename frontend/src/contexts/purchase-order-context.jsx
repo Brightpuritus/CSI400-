@@ -25,20 +25,29 @@ export function PurchaseOrderProvider({ children }) {
   const { updateProduct, products } = useInventory()
 
   useEffect(() => {
-    // Try to load from backend first, fallback to localStorage
-    fetch("/api/purchase-orders")
-      .then((res) => res.json())
-      .then((data) => setPurchaseOrders(Array.isArray(data) ? data : INITIAL_ORDERS))
-      .catch(() => {
-        const stored = localStorage.getItem("purchaseOrders")
-        if (stored) {
-          setPurchaseOrders(JSON.parse(stored))
-        } else {
-          setPurchaseOrders(INITIAL_ORDERS)
-          localStorage.setItem("purchaseOrders", JSON.stringify(INITIAL_ORDERS))
-        }
-      })
-  }, [])
+  // Try to load from backend first, fallback to localStorage
+  fetch("/api/purchase-orders")
+    .then((res) => res.json())
+    .then((data) => {
+      // ✅ แปลง totalAmount ให้เป็น number ทุก order
+      const normalized = (Array.isArray(data) ? data : INITIAL_ORDERS).map(o => ({
+        ...o,
+        totalAmount: Number(o.totalAmount) || 0,
+      }))
+      setPurchaseOrders(normalized)
+    })
+    .catch(() => {
+      const stored = localStorage.getItem("purchaseOrders")
+      if (stored) {
+        setPurchaseOrders(JSON.parse(stored))
+      } else {
+        setPurchaseOrders(INITIAL_ORDERS)
+        localStorage.setItem("purchaseOrders", JSON.stringify(INITIAL_ORDERS))
+      }
+    })
+}, [])
+
+
 
   useEffect(() => {
     // keep a local copy as well for offline/fallback
