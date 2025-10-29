@@ -29,52 +29,41 @@ export function WithdrawalOrderProvider({ children }) {
 
   const loadWithdrawalOrders = async () => {
     try {
-      const response = await axios.get('http://localhost:5000/api/withdrawal-orders')
+      const response = await axios.get("http://localhost:5000/api/withdrawal-orders")
       if (response.data && response.data.withdrawalOrders) {
         setWithdrawalOrders(response.data.withdrawalOrders)
       }
     } catch (error) {
-      console.error('Failed to load withdrawal orders:', error)
+      console.error("Failed to load withdrawal orders:", error)
     }
   }
 
   const createWithdrawalOrder = async (orderData) => {
     try {
-      const response = await axios.post('http://localhost:5000/api/withdrawal-orders', {
-        ...orderData,
-        items: orderData.items.map(item => ({
-          productId: item.productId,
-          productName: products[item.productId], // Add product name
-          quantity: parseInt(item.quantity)
-        }))
-      })
-      
+      const response = await axios.post("http://localhost:5000/api/withdrawal-orders", orderData)
       if (response.data) {
-        setWithdrawalOrders(prev => [...prev, response.data])
+        setWithdrawalOrders((prev) => [...prev, response.data])
         return true
       }
       return false
     } catch (error) {
-      console.error('Failed to create withdrawal order:', error)
+      console.error("Failed to create withdrawal order:", error)
       return false
     }
   }
 
   const confirmWithdrawalOrder = async (orderId, confirmedBy) => {
     try {
-      const response = await axios.post(`http://localhost:5000/api/withdrawal-orders/${orderId}/confirm`, {
-        confirmedBy
-      })
-      
+      const response = await axios.post(`http://localhost:5000/api/withdrawal-orders/${orderId}/confirm`, { confirmedBy })
       if (response.data) {
-        setWithdrawalOrders(prev => 
-          prev.map(order => order.id === orderId ? response.data : order)
+        setWithdrawalOrders((prev) =>
+          prev.map((order) => (order.id === orderId ? response.data : order))
         )
         return true
       }
       return false
     } catch (error) {
-      console.error('Failed to confirm withdrawal order:', error)
+      console.error("Failed to confirm withdrawal order:", error)
       return false
     }
   }

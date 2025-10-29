@@ -1,131 +1,136 @@
-const express = require('express')
-const fs = require('fs')
-const path = require('path')
-
+const express = require("express")
+const mysql = require("mysql2/promise")
 const router = express.Router()
-const DATA_FILE = path.join(__dirname, '..', 'data', 'withdrawalOrders.json')
-const PRODUCTS_FILE = path.join(__dirname, '..', 'data', 'products.json')
+require("dotenv").config()
 
-function readProducts() {
-  try {
-    const data = fs.readFileSync(PRODUCTS_FILE, 'utf8')
-    return JSON.parse(data)
-  } catch (e) {
-    return []
-  }
-}
+// ใช้ MYSQL_URL จาก .env
+const pool = mysql.createPool({
+  uri: process.env.MYSQL_URL, // ใช้ URL สำหรับการเชื่อมต่อ MySQL
+  decimalNumbers: true, // คืนค่า DECIMAL เป็น number แทน string
+})
 
-// Helper functions
-function readWithdrawalOrders() {
-  if (!fs.existsSync(DATA_FILE)) {
-    const initialData = { withdrawalOrders: [] }
-    fs.writeFileSync(DATA_FILE, JSON.stringify(initialData, null, 2), 'utf8')
-    return initialData
-  }
-  try {
-    const data = fs.readFileSync(DATA_FILE, 'utf8')
-    return JSON.parse(data)
-  } catch (e) {
-    return { withdrawalOrders: [] }
-  }
-}
-
-function writeWithdrawalOrders(orders) {
-  fs.writeFileSync(DATA_FILE, JSON.stringify(orders, null, 2), 'utf8')
-}
-
-function writeProducts(products) {
-  fs.writeFileSync(PRODUCTS_FILE, JSON.stringify(products, null, 2), 'utf8')
-}
+pool.getConnection()
+  .then((conn) => {
+    console.log("✅ MySQL connected successfully!");
+    conn.release();
+  })
+  .catch((err) => {
+    console.error("❌ Failed to connect to MySQL:", err.message);
+  });
 
 // Get all withdrawal orders
-router.get('/', (req, res) => {
-  const orders = readWithdrawalOrders()
-  res.json(orders)
+router.get("/", async (req, res) => {
+  try {
+    const [orders] = await pool.query("SELECT * FROM withdrawal_orders ORDER BY createdAt DESC")
+    for (const order of orders) {
+      const [items] = await pool.query("SELECT * FROM withdrawal_order_items WHERE orderId = ?", [order.id])
+      order.items = items
+    }
+    res.json({ withdrawalOrders: orders })
+  } catch (err) {
+    console.error("Error fetching withdrawal orders:", err)
+    res.status(500).json({ error: "Failed to fetch withdrawal orders" })
+  }
 })
 
 // Create new withdrawal order
-router.post('/', (req, res) => {
+router.post("/", async (req, res) => {
+  const conn = await pool.getConnection();
   try {
-    const orders = readWithdrawalOrders()
-    const products = readProducts()
-    const body = req.body
+    await conn.beginTransaction();
+    const {
+      branch,
+      shippingAddress,
+      requestedBy,
+      notes,
+      items = [],
+    } = req.body;
 
-    const newOrder = {
-      id: `WO-${Date.now()}`,
-      orderNumber: `WD${new Date().getFullYear()}${String(orders.withdrawalOrders.length + 1).padStart(3, "0")}`,
-      branch: body.branch, // เปลี่ยนจาก department เป็น branch
-      shippingAddress: body.shippingAddress, // เปลี่ยนจาก purpose เป็น shippingAddress
-      requestedBy: body.requestedBy,
-      createdAt: new Date().toISOString(),
-      status: "pending",
-      items: body.items.map((item) => {
-        const product = products.find((p) => p.id === item.productId)
-        return {
-          productId: item.productId,
-          productName: product ? product.name : "Unknown Product",
-          quantity: parseInt(item.quantity),
-        }
-      }),
-      notes: body.notes || null,
+    const id = `WO-${Date.now()}`;
+    const orderNumber = `WD${new Date().getFullYear()}${String(items.length + 1).padStart(3, "0")}`;
+    const createdAt = new Date().toISOString().slice(0, 19).replace("T", " "); // แปลงเป็นรูปแบบที่ MySQL รองรับ
+    const status = "pending";
+
+    await conn.query(
+      "INSERT INTO withdrawal_orders (id, orderNumber, branch, shippingAddress, requestedBy, createdAt, status, notes) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+      [id, orderNumber, branch, shippingAddress, requestedBy, createdAt, status, notes]
+    );
+
+    for (const item of items) {
+      // ดึงชื่อสินค้า (productName) จาก table products
+      const [product] = await conn.query("SELECT name FROM products WHERE id = ?", [item.productId]);
+      const productName = product.length ? product[0].name : null;
+
+      if (!productName) {
+        throw new Error(`Product with ID ${item.productId} not found`);
+      }
+
+      await conn.query(
+        "INSERT INTO withdrawal_order_items (orderId, productId, productName, quantity) VALUES (?, ?, ?, ?)",
+        [id, item.productId, productName, item.quantity]
+      );
     }
 
-    orders.withdrawalOrders.push(newOrder)
-    writeWithdrawalOrders(orders)
-    res.status(201).json(newOrder)
-  } catch (error) {
-    console.error("Error creating order:", error)
-    res.status(500).json({ error: "Failed to create withdrawal order" })
+    await conn.commit();
+    res.status(201).json({ id, orderNumber, branch, shippingAddress, requestedBy, createdAt, status, notes, items });
+  } catch (err) {
+    await conn.rollback();
+    console.error("Error creating withdrawal order:", err);
+    res.status(500).json({ error: "Failed to create withdrawal order" });
+  } finally {
+    conn.release();
   }
-})
+});
 
 // Confirm withdrawal order
-router.post("/:id/confirm", (req, res) => {
+router.post("/:id/confirm", async (req, res) => {
+  const conn = await pool.getConnection()
   try {
-    const orders = readWithdrawalOrders()
-    const products = readProducts()
-    const orderIndex = orders.withdrawalOrders.findIndex((o) => o.id === req.params.id)
+    await conn.beginTransaction()
+    const { confirmedBy } = req.body
+    const confirmedAt = new Date().toISOString().slice(0, 19).replace("T", " ") // แปลงเป็นรูปแบบที่ MySQL รองรับ
 
-    if (orderIndex === -1) {
+    const [orders] = await conn.query("SELECT * FROM withdrawal_orders WHERE id = ?", [req.params.id])
+    if (!orders.length) {
       return res.status(404).json({ error: "Order not found" })
     }
 
-    const order = orders.withdrawalOrders[orderIndex]
+    const order = orders[0]
+    const [items] = await conn.query("SELECT * FROM withdrawal_order_items WHERE orderId = ?", [order.id])
 
-    // Check if enough quantity available
-    const hasEnoughQuantity = order.items.every((item) => {
+    // ตรวจสอบว่าสินค้ามีเพียงพอหรือไม่
+    const [products] = await conn.query("SELECT * FROM products")
+    const hasEnoughStock = items.every((item) => {
       const product = products.find((p) => p.id === item.productId)
       return product && product.quantity >= item.quantity
     })
 
-    if (!hasEnoughQuantity) {
-      return res.status(400).json({ error: "ไม่มีสินค้าเพียงพอ" })
+    if (!hasEnoughStock) {
+      return res.status(400).json({ error: "สินค้าไม่เพียงพอ" })
     }
 
-    // Update product quantities
-    order.items.forEach((item) => {
-      const productIndex = products.findIndex((p) => p.id === item.productId)
-      if (productIndex !== -1) {
-        products[productIndex].quantity -= item.quantity
-      }
-    })
-
-    // Update order status
-    orders.withdrawalOrders[orderIndex] = {
-      ...order,
-      status: "confirmed",
-      confirmedBy: req.body.confirmedBy,
-      confirmedAt: new Date().toISOString(),
+    // อัปเดตจำนวนสินค้าในคลัง
+    for (const item of items) {
+      await conn.query(
+        "UPDATE products SET quantity = quantity - ? WHERE id = ?",
+        [item.quantity, item.productId]
+      )
     }
 
-    // Save changes
-    writeWithdrawalOrders(orders)
-    writeProducts(products)
+    // อัปเดตสถานะใบเบิก
+    await conn.query(
+      "UPDATE withdrawal_orders SET status = ?, confirmedBy = ?, confirmedAt = ? WHERE id = ?",
+      ["confirmed", confirmedBy, confirmedAt, req.params.id]
+    )
 
-    res.json(orders.withdrawalOrders[orderIndex])
-  } catch (error) {
-    console.error("Error confirming order:", error)
+    await conn.commit()
+    res.json({ ...order, status: "confirmed", confirmedBy, confirmedAt, items })
+  } catch (err) {
+    await conn.rollback()
+    console.error("Error confirming withdrawal order:", err)
     res.status(500).json({ error: "Failed to confirm withdrawal order" })
+  } finally {
+    conn.release()
   }
 })
 
