@@ -1,28 +1,22 @@
 "use client"
 
-import { useEffect } from "react"
-import { useNavigate } from "react-router-dom"
+import { Navigate } from "react-router-dom"
 import { useAuth } from "../contexts/auth-context"
 
-export function ProtectedRoute({ children, allowedRoles }) {
-  const { user, isAuthenticated } = useAuth()
-  const navigate = useNavigate()
+export function ProtectedRoute({ children, roles = [] }) {
+  const { isAuthenticated, user } = useAuth()
 
-  useEffect(() => {
-    if (!isAuthenticated) {
-      navigate("/login")
-    } else if (allowedRoles && !allowedRoles.includes(user?.role)) {
-      navigate("/dashboard")
-    }
-  }, [isAuthenticated, user, allowedRoles, navigate])
-
+  // not logged in -> login
   if (!isAuthenticated) {
-    return null
+    return <Navigate to="/login" replace />
   }
 
-  if (allowedRoles && !allowedRoles.includes(user?.role)) {
-    return null
+  // role-based access: if roles provided and user.role not included -> redirect home
+  if (roles.length > 0 && (!user || !roles.includes(user.role))) {
+    return <Navigate to="/" replace />
   }
 
   return children
 }
+
+export default ProtectedRoute

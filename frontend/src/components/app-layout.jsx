@@ -1,106 +1,118 @@
 "use client"
 
+import React, { useState } from "react"
+import { Link, useLocation } from "react-router-dom"
+import { Home, Box, ShoppingCart, FileText, Bell, User, LogOut, Menu } from "lucide-react"
+
 import { useAuth } from "../contexts/auth-context"
 import { useInventory } from "../contexts/inventory-context"
 import { usePurchaseOrders } from "../contexts/purchase-order-context"
-import { useWithdrawalOrders } from "../contexts/withdrawal-order-context"
-import { LayoutDashboard, Package, ShoppingCart, FileText, Bell, LogOut, Menu } from "lucide-react"
-import { Link, useLocation } from "react-router-dom"
-import { useState } from "react"
+
 import styles from "./app-layout.module.css"
 
 export function AppLayout({ children }) {
   const { user, logout } = useAuth()
-  const { products, getLowStockProducts, getExpiringProducts } = useInventory()
-  const { purchaseOrders } = usePurchaseOrders()
-  const { withdrawalOrders } = useWithdrawalOrders()
+  // initialize other contexts so they load data
+  useInventory()
+  usePurchaseOrders()
+
+  const [open, setOpen] = useState(false) // for mobile drawer / manual open
+  const [expanded, setExpanded] = useState(false) // hover expansion state for desktop
+  const role = user?.role
   const location = useLocation()
-  const [sidebarOpen, setSidebarOpen] = useState(false)
 
-  const lowStockProducts = getLowStockProducts()
-  const expiringProducts = getExpiringProducts(30)
-  const expiredProducts = products.filter((p) => new Date(p.expirationDate) < new Date())
-  const pendingPurchaseOrders = purchaseOrders.filter((o) => o.status === "pending")
-  const pendingWithdrawalOrders = withdrawalOrders.filter((o) => o.status === "pending")
-
-  const notificationCount =
-    expiredProducts.length +
-    expiringProducts.length +
-    lowStockProducts.length +
-    pendingPurchaseOrders.length +
-    pendingWithdrawalOrders.length
-
-  const navigation = [
-    { name: "แดชบอร์ด", href: "/dashboard", icon: LayoutDashboard },
-    { name: "คลังสินค้า", href: "/inventory", icon: Package },
-    { name: "ใบสั่งซื้อ", href: "/purchase-orders", icon: ShoppingCart },
-    { name: "ใบเบิกสินค้า", href: "/withdrawal-orders", icon: FileText },
-    { name: "การแจ้งเตือน", href: "/notifications", icon: Bell, badge: notificationCount },
+  const navLinks = [
+    { to: "/dashboard", label: "แดชบอร์ด", roles: ["admin", "manager"], icon: <Home /> },
+    { to: "/inventory", label: "คลังสินค้า", roles: ["admin", "staff", "manager", "branch"], icon: <Box /> },
+    { to: "/purchase-orders", label: "ใบสั่งซื้อ", roles: ["admin", "staff"], icon: <ShoppingCart /> },
+    { to: "/withdrawal-orders", label: "ใบเบิก", roles: ["admin", "branch"], icon: <FileText /> },
+    { to: "/notifications", label: "การแจ้งเตือน", roles: ["admin", "staff", "manager"], icon: <Bell /> },
   ]
+
+  const visibleLinks = navLinks.filter(l => l.roles.includes(role))
 
   return (
     <div className={styles.container}>
-      {/* Mobile menu button */}
-      <div className={styles.mobileMenuButton}>
-        <button
-          onClick={() => setSidebarOpen(!sidebarOpen)}
-          style={{
-            padding: "0.5rem",
-            border: "1px solid var(--border)",
-            borderRadius: "var(--radius)",
-            backgroundColor: "var(--background)",
-          }}
-        >
-          <Menu style={{ width: "1.25rem", height: "1.25rem" }} />
-        </button>
-      </div>
+      {/* mobile menu button */}
+      <button
+        className={styles.mobileButton}
+        onClick={() => setOpen(true)}
+        aria-label="เปิดเมนู"
+      >
+        <Menu />
+      </button>
 
-      {/* Sidebar */}
-      <aside className={`${styles.sidebar} ${sidebarOpen ? styles.open : ""}`}>
-        <div className={styles.sidebarContent}>
+      {/* sidebar */}
+      <aside
+        className={`${styles.sidebar} ${open ? styles.open : ""} ${expanded ? styles.expanded : ""}`}
+        onMouseEnter={() => setExpanded(true)}
+        onMouseLeave={() => setExpanded(false)}
+      >
+        <div className={styles.sidebarInner}>
           <div className={styles.sidebarHeader}>
-            <h1 className={styles.sidebarTitle}>ระบบจัดการคลังสินค้า</h1>
-            <p className={styles.sidebarSubtitle}>
-              {user?.name} ({user?.role === "admin" ? "ผู้ดูแลระบบ" : "พนักงาน"})
-            </p>
+            <div className={styles.brandDot}></div>
+            <div className={styles.brandText}>
+              <div className={styles.brandName}>Warehouse</div>
+              <div className={styles.brandSub}>Management</div>
+            </div>
           </div>
 
           <nav className={styles.nav}>
-            {navigation.map((item) => {
-              const Icon = item.icon
-              const isActive = location.pathname === item.href
-
+            {visibleLinks.map(link => {
+              const active = location.pathname === link.to
               return (
                 <Link
-                  key={item.name}
-                  to={item.href}
-                  onClick={() => setSidebarOpen(false)}
-                  className={`${styles.navLink} ${isActive ? styles.active : ""}`}
+                  key={link.to}
+                  to={link.to}
+                  className={`${styles.navLink} ${active ? styles.active : ""}`}
+                  onClick={() => setOpen(false)}
                 >
-                  <Icon className={styles.navIcon} />
-                  <span className={styles.navText}>{item.name}</span>
-                  {item.badge > 0 && <span className={styles.badge}>{item.badge}</span>}
+                  <div className={styles.iconWrap}>
+                    <div className={styles.iconBg}>{link.icon}</div>
+                  </div>
+
+                  <div className={styles.textWrap}>
+                    <div className={styles.linkLabel}>{link.label}</div>
+                    {/* small description image-like line */}
+                    <div className={styles.linkSub}>ไปที่ {link.label}</div>
+                  </div>
                 </Link>
               )
             })}
           </nav>
 
           <div className={styles.sidebarFooter}>
-            <button className={styles.logoutButton} onClick={logout}>
-              <LogOut style={{ width: "1.25rem", height: "1.25rem" }} />
-              ออกจากระบบ
-            </button>
+            {user ? (
+              <div className={styles.userRow}>
+                <div className={styles.avatar}><User /></div>
+                <div className={styles.userInfo}>
+                  <div className={styles.userName}>{user.name}</div>
+                  <div className={styles.userRole}>{user.role}</div>
+                </div>
+
+                <button className={styles.logoutBtn} onClick={logout} title="ออกจากระบบ">
+                  <LogOut />
+                </button>
+              </div>
+            ) : (
+              <Link to="/login" className={styles.loginLink}>เข้าสู่ระบบ</Link>
+            )}
           </div>
         </div>
       </aside>
 
-      {/* Overlay for mobile */}
-      {sidebarOpen && <div className={styles.overlay} onClick={() => setSidebarOpen(false)} />}
+      {/* overlay for mobile */}
+      {open && <div className={styles.overlay} onClick={() => setOpen(false)} />}
 
-      {/* Main content */}
+      {/* main content */}
       <main className={styles.main}>
-        <div className={styles.mainContent}>{children}</div>
+        {/* remount page container on path change to trigger CSS animation */}
+        <div key={location.pathname} className={styles.page}>
+          <div className={styles.mainContent}>{children}</div>
+        </div>
       </main>
     </div>
   )
 }
+  
+export default AppLayout

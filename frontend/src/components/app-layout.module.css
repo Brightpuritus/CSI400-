@@ -1,168 +1,182 @@
+:root{
+  --sidebar-width-collapsed: 72px;
+  --sidebar-width-expanded: 260px;
+  --sidebar-bg: linear-gradient(180deg,#0b3d91,#08306e);
+  --accent: #60a5fa;
+  --muted: rgba(255,255,255,0.85);
+  --glass: rgba(255,255,255,0.04);
+
+  /* animation timings (kept for small UI effects only) */
+  --transition: 520ms;
+  --transition-slow: 760ms;
+  --easing: cubic-bezier(.2,.9,.3,1);
+
+  --page-duration: 1200ms;
+  --page-easing: cubic-bezier(.2,.9,.3,1);
+}
+
+/* layout */
 .container {
   display: flex;
-  height: 100vh;
-  background-color: var(--background);
+  min-height: 100vh;
+  background: #f6f8fb;
 }
 
-.mobileMenuButton {
+/* mobile menu button */
+.mobileButton {
   position: fixed;
-  top: 1rem;
-  left: 1rem;
-  z-index: 50;
-  display: block;
+  left: 12px;
+  top: 12px;
+  z-index: 60;
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  background: white;
+  border: 1px solid rgba(0,0,0,0.06);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 6px 20px rgba(2,6,23,0.08);
 }
+@media (min-width: 1024px) { .mobileButton { display: none; } }
 
-@media (min-width: 1024px) {
-  .mobileMenuButton {
-    display: none;
-  }
-}
-
+/* --------------------------
+   SIDEBAR - FIXED, NO MOVE
+   -------------------------- */
+/* keep sidebar fixed at expanded width on desktop */
 .sidebar {
   position: fixed;
+  left: 0;
   top: 0;
   bottom: 0;
-  left: 0;
-  z-index: 40;
-  width: 16rem;
-  background-color: var(--sidebar);
-  border-right: 1px solid var(--sidebar-border);
-  transform: translateX(-100%);
-  transition: transform 0.2s ease-in-out;
-}
-
-.sidebar.open {
-  transform: translateX(0);
-}
-
-@media (min-width: 1024px) {
-  .sidebar {
-    position: static;
-    transform: translateX(0);
-  }
-}
-
-.sidebarContent {
+  width: var(--sidebar-width-expanded); /* fixed width */
+  background: var(--sidebar-bg);
+  color: white;
+  overflow: hidden;
+  transition: none; /* disable width transitions so it doesn't move */
+  z-index: 55;
+  box-shadow: 0 12px 40px rgba(2,6,23,0.12);
   display: flex;
   flex-direction: column;
-  height: 100%;
+  align-items: stretch;
 }
 
+/* mobile behavior: still allow slide-in for small screens */
+@media (max-width: 1023px) {
+  .sidebar { transform: translateX(-100%); transition: transform var(--transition) var(--easing); width: var(--sidebar-width-expanded); }
+  .sidebar.open { transform: translateX(0); }
+}
+
+/* inner */
+.sidebarInner { display:flex; flex-direction:column; height:100%; }
+
+/* header */
 .sidebarHeader {
-  padding: 1.5rem;
-  border-bottom: 1px solid var(--sidebar-border);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 18px 16px;
+  border-bottom: 1px solid var(--glass);
+}
+.brandDot {
+  width: 44px;
+  height: 44px;
+  background: rgba(255,255,255,0.06);
+  border-radius: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  color: var(--accent);
+  font-size: 1rem;
 }
 
-.sidebarTitle {
-  font-size: 1.25rem;
-  font-weight: bold;
-  color: var(--sidebar-foreground);
+/* header text always visible (no reveal animation) */
+.brandText { 
+  opacity: 1; 
+  transform: translateX(0);
+  transition: none;
 }
+.brandName { font-weight: 700; color: #fff; }
+.brandSub { font-size: 0.8rem; color: var(--muted); }
 
-.sidebarSubtitle {
-  font-size: 0.875rem;
-  color: var(--sidebar-foreground);
-  opacity: 0.7;
-  margin-top: 0.25rem;
-}
-
+/* nav - items visible by default, no translate/hide */
 .nav {
-  flex: 1;
-  padding: 1rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.navLink {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 0.75rem 1rem;
-  border-radius: 0.5rem;
-  transition: all 0.2s;
-  text-decoration: none;
-  color: var(--sidebar-foreground);
-}
-
-.navLink:hover {
-  background-color: var(--sidebar-accent);
-  color: var(--sidebar-accent-foreground);
-}
-
-.navLink.active {
-  background-color: var(--sidebar-accent);
-  color: var(--sidebar-accent-foreground);
-}
-
-.navIcon {
-  width: 1.25rem;
-  height: 1.25rem;
-}
-
-.navText {
-  flex: 1;
-}
-
-.badge {
-  margin-left: auto;
-  padding: 0.125rem 0.5rem;
-  background-color: var(--destructive);
-  color: var(--destructive-foreground);
-  border-radius: 9999px;
-  font-size: 0.75rem;
-  font-weight: 600;
-}
-
-.sidebarFooter {
-  padding: 1rem;
-  border-top: 1px solid var(--sidebar-border);
-}
-
-.logoutButton {
-  width: 100%;
-  display: flex;
-  justify-content: flex-start;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 0.75rem 1rem;
-  background-color: transparent;
-  border: 1px solid var(--sidebar-border);
-  border-radius: 0.5rem;
-  color: var(--sidebar-foreground);
-  transition: all 0.2s;
-}
-
-.logoutButton:hover {
-  background-color: var(--sidebar-accent);
-}
-
-.overlay {
-  position: fixed;
-  inset: 0;
-  background-color: rgba(0, 0, 0, 0.5);
-  z-index: 30;
-}
-
-@media (min-width: 1024px) {
-  .overlay {
-    display: none;
-  }
-}
-
-.main {
-  flex: 1;
+  display:flex;
+  flex-direction:column;
+  gap: 8px;
+  padding: 12px;
   overflow: auto;
 }
+.navLink {
+  display:flex;
+  align-items:center;
+  gap: 12px;
+  padding: 10px;
+  border-radius: 10px;
+  text-decoration: none;
+  color: white;
+  transition: background 220ms var(--easing), transform 220ms var(--easing);
+  transform: none;
+  opacity: 1;
+}
+.navLink:hover { background: rgba(255,255,255,0.04); transform: translateX(6px); }
+.navLink.active { background: linear-gradient(90deg, rgba(96,165,250,0.12), rgba(96,165,250,0.06)); box-shadow: inset 3px 0 0 rgba(96,165,250,0.9); }
 
-.mainContent {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 1.5rem;
+/* icon */
+.iconWrap { width: 44px; height: 44px; flex: 0 0 44px; display:flex; align-items:center; justify-content:center; }
+.iconBg {
+  width: 40px; height: 40px; border-radius: 9px;
+  background: rgba(255,255,255,0.06);
+  display:inline-flex; align-items:center; justify-content:center;
+  color: white;
+  transition: background 260ms var(--easing), transform 260ms var(--easing);
+}
+.navLink:hover .iconBg { background: rgba(255,255,255,0.09); transform: scale(1.03); }
+
+/* text */
+.textWrap { display:flex; flex-direction:column; min-width: 0; }
+.linkLabel { font-weight: 700; color: #fff; }
+.linkSub { font-size: 0.8rem; color: var(--muted); }
+
+/* footer */
+.sidebarFooter { padding: 12px; border-top: 1px solid var(--glass); }
+.userRow { display:flex; align-items:center; gap:10px; }
+.avatar { width:40px; height:40px; border-radius:8px; background: rgba(255,255,255,0.06); display:flex; align-items:center; justify-content:center; color: var(--accent); }
+.userInfo { display:block; } /* always visible */
+.userName { font-weight:700; }
+.userRole { font-size:0.8rem; color: var(--muted); }
+.logoutBtn { margin-left:auto; background:transparent; border:none; color:white; cursor:pointer; }
+
+/* overlay and main */
+/* sidebar fixed at expanded width, so main margin should match */
+.overlay { position:fixed; inset:0; background: rgba(0,0,0,0.35); z-index:50; }
+.main { 
+  flex:1; 
+  margin-left: var(--sidebar-width-expanded); /* content sits to the right of fixed sidebar */
+  transition: margin-left 220ms var(--easing);
+}
+.mainContent { padding: 20px; }
+
+/* responsive adjustments */
+@media (max-width: 1023px) {
+  .main { margin-left: 0; } /* mobile: when sidebar hidden, content uses full width */
 }
 
-@media (min-width: 1024px) {
-  .mainContent {
-    padding: 2rem;
-  }
+/* accessibility */
+.navLink:focus { outline: 2px solid rgba(255,255,255,0.12); outline-offset: 2px; border-radius: 10px; }
+
+/* page enter animation */
+.page {
+  width: 100%;
+  min-height: 100%;
+  animation: pageEnter var(--page-duration) var(--page-easing) both;
+}
+@keyframes pageEnter {
+  0% { opacity: 0; transform: translateY(10px) scale(0.995); filter: blur(2px); }
+  60% { opacity: 1; transform: translateY(-2px) scale(1.002); filter: blur(0.2px); }
+  100% { opacity: 1; transform: translateY(0) scale(1); filter: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .page { animation: none; }
 }
