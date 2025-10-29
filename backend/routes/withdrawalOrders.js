@@ -53,58 +53,58 @@ router.post('/', (req, res) => {
 
     const newOrder = {
       id: `WO-${Date.now()}`,
-      orderNumber: `WD${new Date().getFullYear()}${String(orders.withdrawalOrders.length + 1).padStart(3, '0')}`,
-      department: body.department,
-      purpose: body.purpose,
+      orderNumber: `WD${new Date().getFullYear()}${String(orders.withdrawalOrders.length + 1).padStart(3, "0")}`,
+      branch: body.branch, // เปลี่ยนจาก department เป็น branch
+      shippingAddress: body.shippingAddress, // เปลี่ยนจาก purpose เป็น shippingAddress
       requestedBy: body.requestedBy,
       createdAt: new Date().toISOString(),
-      status: 'pending',
-      items: body.items.map(item => {
-        const product = products.find(p => p.id === item.productId)
+      status: "pending",
+      items: body.items.map((item) => {
+        const product = products.find((p) => p.id === item.productId)
         return {
           productId: item.productId,
-          productName: product ? product.name : 'Unknown Product',
-          quantity: parseInt(item.quantity)
+          productName: product ? product.name : "Unknown Product",
+          quantity: parseInt(item.quantity),
         }
       }),
-      notes: body.notes || null
+      notes: body.notes || null,
     }
 
     orders.withdrawalOrders.push(newOrder)
     writeWithdrawalOrders(orders)
     res.status(201).json(newOrder)
   } catch (error) {
-    console.error('Error creating order:', error)
-    res.status(500).json({ error: 'Failed to create withdrawal order' })
+    console.error("Error creating order:", error)
+    res.status(500).json({ error: "Failed to create withdrawal order" })
   }
 })
 
 // Confirm withdrawal order
-router.post('/:id/confirm', (req, res) => {
+router.post("/:id/confirm", (req, res) => {
   try {
     const orders = readWithdrawalOrders()
     const products = readProducts()
-    const orderIndex = orders.withdrawalOrders.findIndex(o => o.id === req.params.id)
+    const orderIndex = orders.withdrawalOrders.findIndex((o) => o.id === req.params.id)
 
     if (orderIndex === -1) {
-      return res.status(404).json({ error: 'Order not found' })
+      return res.status(404).json({ error: "Order not found" })
     }
 
     const order = orders.withdrawalOrders[orderIndex]
 
     // Check if enough quantity available
-    const hasEnoughQuantity = order.items.every(item => {
-      const product = products.find(p => p.id === item.productId)
+    const hasEnoughQuantity = order.items.every((item) => {
+      const product = products.find((p) => p.id === item.productId)
       return product && product.quantity >= item.quantity
     })
 
     if (!hasEnoughQuantity) {
-      return res.status(400).json({ error: 'ไม่มีสินค้าเพียงพอ' })
+      return res.status(400).json({ error: "ไม่มีสินค้าเพียงพอ" })
     }
 
     // Update product quantities
-    order.items.forEach(item => {
-      const productIndex = products.findIndex(p => p.id === item.productId)
+    order.items.forEach((item) => {
+      const productIndex = products.findIndex((p) => p.id === item.productId)
       if (productIndex !== -1) {
         products[productIndex].quantity -= item.quantity
       }
@@ -113,9 +113,9 @@ router.post('/:id/confirm', (req, res) => {
     // Update order status
     orders.withdrawalOrders[orderIndex] = {
       ...order,
-      status: 'confirmed',
+      status: "confirmed",
       confirmedBy: req.body.confirmedBy,
-      confirmedAt: new Date().toISOString()
+      confirmedAt: new Date().toISOString(),
     }
 
     // Save changes
@@ -124,8 +124,8 @@ router.post('/:id/confirm', (req, res) => {
 
     res.json(orders.withdrawalOrders[orderIndex])
   } catch (error) {
-    console.error('Error confirming order:', error)
-    res.status(500).json({ error: 'Failed to confirm withdrawal order' })
+    console.error("Error confirming order:", error)
+    res.status(500).json({ error: "Failed to confirm withdrawal order" })
   }
 })
 

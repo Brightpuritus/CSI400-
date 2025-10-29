@@ -29,6 +29,8 @@ export function CreateWithdrawalOrderDialog({ open, onOpenChange }) {
   const [purpose, setPurpose] = useState("")
   const [notes, setNotes] = useState("")
   const [items, setItems] = useState([{ productId: "", quantity: "" }])
+  const [branch, setBranch] = useState("")
+  const [shippingAddress, setShippingAddress] = useState("")
 
   const handleAddItem = () => {
     setItems([...items, { productId: "", quantity: "" }])
@@ -86,8 +88,8 @@ export function CreateWithdrawalOrderDialog({ open, onOpenChange }) {
     }))
 
     createWithdrawalOrder({
-      department,
-      purpose,
+      branch,
+      shippingAddress,
       items: orderItems,
       notes,
       requestedBy: user?.username || "Unknown",
@@ -115,24 +117,26 @@ export function CreateWithdrawalOrderDialog({ open, onOpenChange }) {
 
         <form onSubmit={handleSubmit} className={styles.form}>
           <div className={styles.grid}>
+            
             <div className={styles.formGroup}>
-              <Label htmlFor="department">แผนก/หน่วยงาน</Label>
+              <Label htmlFor="branch">สาขา</Label>
               <Input
-                id="department"
-                value={department}
-                onChange={(e) => setDepartment(e.target.value)}
-                placeholder="แผนกขาย"
+                id="branch"
+                value={branch}
+                onChange={(e) => setBranch(e.target.value)}
+                placeholder="เช่น สาขาเชียงใหม่"
                 required
               />
             </div>
 
             <div className={styles.formGroup}>
-              <Label htmlFor="purpose">วัตถุประสงค์</Label>
-              <Input
-                id="purpose"
-                value={purpose}
-                onChange={(e) => setPurpose(e.target.value)}
-                placeholder="ใช้ในการขาย"
+              <Label htmlFor="shippingAddress">ที่อยู่จัดส่ง</Label>
+              <Textarea
+                id="shippingAddress"
+                value={shippingAddress}
+                onChange={(e) => setShippingAddress(e.target.value)}
+                placeholder="กรอกที่อยู่จัดส่ง"
+                rows={3}
                 required
               />
             </div>

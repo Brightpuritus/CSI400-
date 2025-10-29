@@ -51,10 +51,10 @@ export default function WithdrawalOrdersPage() {
                 <span className={styles.status}>{order.status}</span>
               </div>
               <div className={styles.orderDetails}>
-                <p>แผนก: {order.department}</p>
-                <p>วัตถุประสงค์: {order.purpose}</p>
                 <p>ผู้เบิก: {order.requestedBy}</p>
                 <p>วันที่: {new Date(order.createdAt).toLocaleDateString()}</p>
+                <p>สาขา: {order.branch}</p>
+                <p>ที่อยู่จัดส่ง: {order.shippingAddress}</p>
               </div>
               <div className={styles.items}>
                 <h4>รายการสินค้า</h4>
