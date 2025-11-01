@@ -1,101 +1,126 @@
-import { Routes, Route } from "react-router-dom"
-import ProtectedRoute from "./components/protected-route"
-import { AuthProvider } from "./contexts/auth-context"
-import { InventoryProvider } from "./contexts/inventory-context"
-import { PurchaseOrderProvider } from "./contexts/purchase-order-context"
-import { WithdrawalOrderProvider } from "./contexts/withdrawal-order-context"
-import { Toaster } from "./components/ui/toaster"
-import LoginPage from "./pages/LoginPage"
-import DashboardPage from "./pages/DashboardPage"
-import InventoryPage from "./pages/InventoryPage"
-import PurchaseOrdersPage from "./pages/PurchaseOrdersPage"
-import WithdrawalOrdersPage from "./pages/WithdrawalOrdersPage"
-import NotificationsPage from "./pages/NotificationsPage"
-import HomePage from "./pages/HomePage"
-import { useEffect } from "react"
-import { useNavigate } from "react-router-dom"
-import { useAuth } from "./contexts/auth-context"
+"use client"
 
-function RootRedirect() {
-  const { isAuthenticated, user } = useAuth()
-  const navigate = useNavigate()
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom"
+import { AuthProvider, useAuth } from "./context/AuthContext"
+import { DataStoreProvider } from "./context/DataStore"
+import Navbar from "./components/Navbar"
+import Login from "./pages/Login"
+import Register from "./pages/Register"
+import CustomerOrders from "./pages/CustomerOrders"
+import NewOrder from "./pages/NewOrder"
+import Production from "./pages/Production"
+import Delivery from "./pages/Delivery"
+import Dashboard from "./pages/Dashboard"
+import Users from "./pages/Users"
+import "./App.css"
 
-  useEffect(() => {
-    if (!isAuthenticated) return
-    if (user?.role === "staff") navigate("/inventory", { replace: true })
-    else if (user?.role === "branch") navigate("/withdrawal-orders", { replace: true })
-    else navigate("/dashboard", { replace: true }) // admin, manager
-  }, [isAuthenticated, user, navigate])
+function ProtectedRoute({ children, allowedRoles }) {
+  const { user } = useAuth()
 
-  if (!isAuthenticated) return <HomePage />
-  return null
+  if (!user) {
+    return <Navigate to="/login" replace />
+  }
+
+  if (allowedRoles && !allowedRoles.includes(user.role)) {
+    return <Navigate to="/" replace />
+  }
+
+  return children
+}
+
+function Home() {
+  const { user } = useAuth()
+
+  if (!user) {
+    return <Navigate to="/login" replace />
+  }
+
+  if (user.role === "customer") {
+    return <Navigate to="/customer/orders" replace />
+  } else if (user.role === "employee") {
+    return <Navigate to="/employee/production" replace />
+  } else if (user.role === "manager" || user.role === "admin") {
+    return <Navigate to="/manager/dashboard" replace />
+  }
+
+  return <Navigate to="/login" replace />
+}
+
+function AppContent() {
+  const { user } = useAuth()
+
+  return (
+    <div className="app">
+      {user && <Navbar />}
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+
+        <Route
+          path="/customer/orders"
+          element={
+            <ProtectedRoute allowedRoles={["customer", "admin"]}>
+              <CustomerOrders />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/customer/orders/new"
+          element={
+            <ProtectedRoute allowedRoles={["customer", "admin"]}>
+              <NewOrder />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/employee/production"
+          element={
+            <ProtectedRoute allowedRoles={["employee", "admin"]}>
+              <Production />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/employee/delivery"
+          element={
+            <ProtectedRoute allowedRoles={["employee", "admin"]}>
+              <Delivery />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/manager/dashboard"
+          element={
+            <ProtectedRoute allowedRoles={["manager", "admin"]}>
+              <Dashboard />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/manager/users"
+          element={
+            <ProtectedRoute allowedRoles={["manager", "admin"]}>
+              <Users />
+            </ProtectedRoute>
+          }
+        />
+      </Routes>
+    </div>
+  )
 }
 
 function App() {
   return (
-    <AuthProvider>
-      <InventoryProvider>
-        <PurchaseOrderProvider>
-          <WithdrawalOrderProvider>
-            <Routes>
-              <Route path="/" element={<RootRedirect />} />
-              <Route path="/login" element={<LoginPage />} />
-
-              {/* Dashboard -> admin, manager */}
-              <Route
-                path="/dashboard"
-                element={
-                  <ProtectedRoute roles={["admin", "manager"]}>
-                    <DashboardPage />
-                  </ProtectedRoute>
-                }
-              />
-
-              {/* Inventory -> admin, staff, manager, branch */}
-              <Route
-                path="/inventory"
-                element={
-                  <ProtectedRoute roles={["admin", "staff", "manager", "branch"]}>
-                    <InventoryPage />
-                  </ProtectedRoute>
-                }
-              />
-
-              {/* Purchase Orders -> admin, staff */}
-              <Route
-                path="/purchase-orders"
-                element={
-                  <ProtectedRoute roles={["admin", "staff"]}>
-                    <PurchaseOrdersPage />
-                  </ProtectedRoute>
-                }
-              />
-
-              {/* Withdrawal Orders -> admin, branch */}
-              <Route
-                path="/withdrawal-orders"
-                element={
-                  <ProtectedRoute roles={["admin", "branch"]}>
-                    <WithdrawalOrdersPage />
-                  </ProtectedRoute>
-                }
-              />
-
-              {/* Notifications -> admin, staff, manager */}
-              <Route
-                path="/notifications"
-                element={
-                  <ProtectedRoute roles={["admin", "staff", "manager"]}>
-                    <NotificationsPage />
-                  </ProtectedRoute>
-                }
-              />
-            </Routes>
-            <Toaster />
-          </WithdrawalOrderProvider>
-        </PurchaseOrderProvider>
-      </InventoryProvider>
-    </AuthProvider>
+    <BrowserRouter>
+      <AuthProvider>
+        <DataStoreProvider>
+          <AppContent />
+        </DataStoreProvider>
+      </AuthProvider>
+    </BrowserRouter>
   )
 }
 
