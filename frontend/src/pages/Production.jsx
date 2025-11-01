@@ -9,11 +9,17 @@ function Production() {
   const { orders, updateProductionStatus } = useDataStore()
   const [activeTab, setActiveTab] = useState("pending")
 
+  // กรองออเดอร์ตามสถานะการผลิต
   const productionOrders = {
     pending: orders.filter((o) => o.productionStatus === "รอเริ่มผลิต"),
     inProgress: orders.filter((o) => o.productionStatus === "กำลังผลิต"),
     packaging: orders.filter((o) => o.productionStatus === "บรรจุกระป๋อง"),
-    ready: orders.filter((o) => o.productionStatus === "พร้อมจัดส่ง"),
+    ready: orders.filter(
+      (o) =>
+        o.productionStatus === "พร้อมจัดส่ง" &&
+        o.deliveryStatus !== "จัดส่งแล้ว" && // กรองออเดอร์ที่ยังไม่ได้จัดส่ง
+        o.status !== "เสร็จสิ้น" // กรองออเดอร์ที่เสร็จสิ้นแล้ว
+    ),
   }
 
   const stats = [

@@ -3,7 +3,7 @@
 import { useState } from "react"
 import { useNavigate, Link } from "react-router-dom"
 import { useAuth } from "../context/AuthContext"
-import { Package, Mail, Lock, User, AlertCircle, CheckCircle } from "lucide-react"
+import { User, Mail, Lock, AlertCircle, CheckCircle } from "lucide-react"
 import "./Login.css"
 
 function Register() {
@@ -34,27 +34,24 @@ function Register() {
   return (
     <div className="auth-container">
       <div className="auth-card">
-        <div className="auth-header">
-          <Package className="auth-icon" />
-          <h1 className="auth-title">ลงทะเบียน</h1>
-          <p className="auth-subtitle">สร้างบัญชีใหม่</p>
-        </div>
+        <h1 className="auth-title">ลงทะเบียน</h1>
+        <p className="auth-subtitle">สร้างบัญชีใหม่เพื่อเริ่มใช้งาน</p>
+
+        {error && (
+          <div className="error-message">
+            <AlertCircle size={16} />
+            <span>{error}</span>
+          </div>
+        )}
+
+        {success && (
+          <div className="success-message">
+            <CheckCircle size={16} />
+            <span>ลงทะเบียนสำเร็จ! กำลังนำคุณไปหน้าเข้าสู่ระบบ...</span>
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} className="auth-form">
-          {error && (
-            <div className="error-message">
-              <AlertCircle size={16} />
-              <span>{error}</span>
-            </div>
-          )}
-
-          {success && (
-            <div className="success-message">
-              <CheckCircle size={16} />
-              <span>ลงทะเบียนสำเร็จ! กำลังนำคุณไปหน้าเข้าสู่ระบบ...</span>
-            </div>
-          )}
-
           <div className="form-group">
             <label htmlFor="name" className="form-label">
               <User size={16} />

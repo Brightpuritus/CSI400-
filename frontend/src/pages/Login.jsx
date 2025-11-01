@@ -3,7 +3,7 @@
 import { useState } from "react"
 import { useNavigate, Link } from "react-router-dom"
 import { useAuth } from "../context/AuthContext"
-import { Package, Mail, Lock, AlertCircle } from "lucide-react"
+import { Mail, Lock, AlertCircle } from "lucide-react"
 import "./Login.css"
 
 function Login() {
@@ -24,28 +24,36 @@ function Login() {
     }
   }
 
-  const handleDemoLogin = (demoEmail) => {
-    setEmail(demoEmail)
-    setPassword("123456")
+  // ฟังก์ชันช่วยกรอกข้อมูลสำหรับแต่ละ role
+  const handleAutoFill = (role) => {
+    const testAccounts = {
+      customer: { email: "customer@test.com", password: "123456" },
+      employee: { email: "employee@test.com", password: "123456" },
+      manager: { email: "manager@test.com", password: "123456" },
+      admin: { email: "admin@test.com", password: "123456" },
+    }
+
+    const account = testAccounts[role]
+    if (account) {
+      setEmail(account.email)
+      setPassword(account.password)
+    }
   }
 
   return (
     <div className="auth-container">
       <div className="auth-card">
-        <div className="auth-header">
-          <Package className="auth-icon" />
-          <h1 className="auth-title">เข้าสู่ระบบ</h1>
-          <p className="auth-subtitle">ระบบจัดการโรงงานปลากระป๋อง</p>
-        </div>
+        <h1 className="auth-title">เข้าสู่ระบบ</h1>
+        <p className="auth-subtitle">กรุณากรอกข้อมูลเพื่อเข้าสู่ระบบ</p>
+
+        {error && (
+          <div className="error-message">
+            <AlertCircle size={16} />
+            <span>{error}</span>
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} className="auth-form">
-          {error && (
-            <div className="error-message">
-              <AlertCircle size={16} />
-              <span>{error}</span>
-            </div>
-          )}
-
           <div className="form-group">
             <label htmlFor="email" className="form-label">
               <Mail size={16} />
@@ -83,26 +91,35 @@ function Login() {
           </button>
         </form>
 
-        <div className="auth-divider">
-          <span>หรือทดลองใช้งานด้วย</span>
-        </div>
-
-        <div className="demo-accounts">
-          <button type="button" onClick={() => handleDemoLogin("customer@test.com")} className="demo-button">
-            <div className="demo-role">ลูกค้า</div>
-            <div className="demo-email">customer@test.com</div>
+        {/* ปุ่มช่วยกรอกข้อมูลสำหรับแต่ละ role */}
+        <div className="auto-fill-buttons">
+          <button
+            type="button"
+            className="btn btn-secondary"
+            onClick={() => handleAutoFill("customer")}
+          >
+            กรอกข้อมูลลูกค้า
           </button>
-          <button type="button" onClick={() => handleDemoLogin("employee@test.com")} className="demo-button">
-            <div className="demo-role">พนักงาน</div>
-            <div className="demo-email">employee@test.com</div>
+          <button
+            type="button"
+            className="btn btn-secondary"
+            onClick={() => handleAutoFill("employee")}
+          >
+            กรอกข้อมูลพนักงาน
           </button>
-          <button type="button" onClick={() => handleDemoLogin("manager@test.com")} className="demo-button">
-            <div className="demo-role">ผู้จัดการ</div>
-            <div className="demo-email">manager@test.com</div>
+          <button
+            type="button"
+            className="btn btn-secondary"
+            onClick={() => handleAutoFill("manager")}
+          >
+            กรอกข้อมูลผู้จัดการ
           </button>
-          <button type="button" onClick={() => handleDemoLogin("admin@test.com")} className="demo-button">
-            <div className="demo-role">ผู้ดูแลระบบ</div>
-            <div className="demo-email">admin@test.com</div>
+          <button
+            type="button"
+            className="btn btn-secondary"
+            onClick={() => handleAutoFill("admin")}
+          >
+            กรอกข้อมูลผู้ดูแลระบบ
           </button>
         </div>
 
