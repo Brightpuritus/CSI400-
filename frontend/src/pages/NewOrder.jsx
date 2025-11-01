@@ -69,6 +69,7 @@ function NewOrder() {
       vat,
       totalWithVat: total,
       deliveryDate,
+      productionStatus: "รอเริ่มผลิต", // เพิ่มสถานะเริ่มต้น
     })
 
     alert("สั่งซื้อสำเร็จ!")

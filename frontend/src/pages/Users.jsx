@@ -6,7 +6,7 @@ import { useNavigate } from "react-router-dom"
 import "./Users.css"
 
 export default function Users() {
-  const { user, users } = useAuth()
+  const { user, users } = useAuth() // ดึง users จาก AuthContext
   const navigate = useNavigate()
 
   useEffect(() => {
@@ -16,6 +16,7 @@ export default function Users() {
   }, [user, navigate])
 
   if (!user) return null
+  if (!users || users.length === 0) return <div>กำลังโหลดข้อมูลผู้ใช้...</div> // ตรวจสอบ users
 
   const roleGroups = {
     admin: {

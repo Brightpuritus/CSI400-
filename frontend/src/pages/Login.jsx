@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { useNavigate, Link } from "react-router-dom"
+import { useNavigate, Link, Navigate } from "react-router-dom"
 import { useAuth } from "../context/AuthContext"
 import { Mail, Lock, AlertCircle } from "lucide-react"
 import "./Login.css"
@@ -10,8 +10,13 @@ function Login() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [error, setError] = useState("")
-  const { login } = useAuth()
+  const { user, login } = useAuth() // เพิ่ม user เพื่อตรวจสอบสถานะการล็อกอิน
   const navigate = useNavigate()
+
+  // หากผู้ใช้ล็อกอินแล้ว ให้เปลี่ยนเส้นทางไปหน้าแรก
+  if (user) {
+    return <Navigate to="/" replace />
+  }
 
   const handleSubmit = (e) => {
     e.preventDefault()

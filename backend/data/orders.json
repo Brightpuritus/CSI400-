@@ -1,0 +1,23 @@
+[
+  {
+    "id": "1762034824192",
+    "productionStatus": null,
+    "customerId": "1",
+    "customerName": "Admin",
+    "items": [
+      {
+        "productId": "1",
+        "productName": "ปลาทูน่าในน้ำมัน",
+        "price": 45,
+        "quantity": 1
+      }
+    ],
+    "subtotal": 45,
+    "vat": 3.1500000000000004,
+    "totalWithVat": 48.15,
+    "deliveryDate": "2025-11-08",
+    "trackingNumber": "1",
+    "deliveryStatus": "จัดส่งสำเร็จ",
+    "status": "เสร็จสิ้น"
+  }
+]

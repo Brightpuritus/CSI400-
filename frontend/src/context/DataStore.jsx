@@ -4,73 +4,91 @@ import { createContext, useContext, useState, useEffect } from "react"
 
 const DataStoreContext = createContext(null)
 
-const initialProducts = [
-  { id: 1, name: "ปลาทูน่าในน้ำมัน", size: "185g", price: 45, image: "/tuna-can.jpg" },
-  { id: 2, name: "ปลาซาร์ดีนในซอสมะเขือเทศ", size: "155g", price: 35, image: "/sardine-can.jpg" },
-  { id: 3, name: "ปลาแมคเคอเรลในซอสมะเขือเทศ", size: "155g", price: 30, image: "/mackerel-can.jpg" },
-  { id: 4, name: "ปลาทูน่าสไลด์", size: "185g", price: 50, image: "/tuna-slice-can.jpg" },
-  { id: 5, name: "ปลาซาร์ดีนในน้ำมัน", size: "125g", price: 32, image: "/sardine-oil-can.jpg" },
-  { id: 6, name: "ปลาทูน่าชิ้นใหญ่", size: "185g", price: 55, image: "/tuna-chunk-can.jpg" },
-]
-
 export function DataStoreProvider({ children }) {
-  const [products] = useState(initialProducts)
+  const [products, setProducts] = useState([])
   const [orders, setOrders] = useState([])
 
+  // ดึงข้อมูลสินค้าและคำสั่งซื้อจาก Backend
   useEffect(() => {
-    const storedOrders = localStorage.getItem("orders")
-    if (storedOrders) {
-      setOrders(JSON.parse(storedOrders))
+    const fetchProducts = async () => {
+      const response = await fetch("http://localhost:5000/api/products")
+      const data = await response.json()
+      setProducts(data)
     }
+
+    const fetchOrders = async () => {
+      const response = await fetch("http://localhost:5000/api/orders")
+      const data = await response.json()
+      setOrders(data)
+    }
+
+    fetchProducts()
+    fetchOrders()
   }, [])
 
-  const addOrder = (order) => {
-    const newOrder = {
-      ...order,
-      id: orders.length + 1,
-      orderDate: new Date().toISOString(),
-      status: "รอดำเนินการ",
-      productionStatus: "รอเริ่มผลิต",
-      deliveryStatus: null,
-      trackingNumber: null,
-      subtotal: order.subtotal, // Ensure subtotal is stored
-      vat: order.vat,         // Ensure VAT is stored
-      totalWithVat: order.totalWithVat, // Ensure total with VAT is stored
-    }
-    const updatedOrders = [...orders, newOrder]
-    setOrders(updatedOrders)
-    localStorage.setItem("orders", JSON.stringify(updatedOrders))
+  const addOrder = async (order) => {
+    const response = await fetch("http://localhost:5000/api/orders", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(order),
+    })
+    const newOrder = await response.json()
+    setOrders((prevOrders) => [...prevOrders, newOrder])
     return newOrder
   }
 
-  const updateOrderStatus = (orderId, status) => {
-    const updatedOrders = orders.map((order) => (order.id === orderId ? { ...order, status } : order))
-    setOrders(updatedOrders)
-    localStorage.setItem("orders", JSON.stringify(updatedOrders))
-  }
-
-  const updateProductionStatus = (orderId, productionStatus) => {
-    const updatedOrders = orders.map((order) => (order.id === orderId ? { ...order, productionStatus } : order))
-    setOrders(updatedOrders)
-    localStorage.setItem("orders", JSON.stringify(updatedOrders))
-  }
-
-  const updateDeliveryInfo = (orderId, trackingNumber, deliveryStatus) => {
-    const updatedOrders = orders.map((order) => {
-      if (order.id === orderId) {
-        // If delivery is successful, also update the main order status to completed
-        const newStatus = deliveryStatus === "จัดส่งสำเร็จ" ? "เสร็จสิ้น" : order.status
-        return {
-          ...order,
-          trackingNumber,
-          deliveryStatus,
-          status: newStatus,
-        }
-      }
-      return order
+  const updateOrderStatus = async (orderId, status) => {
+    const response = await fetch(`http://localhost:5000/api/orders/${orderId}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ status }),
     })
-    setOrders(updatedOrders)
-    localStorage.setItem("orders", JSON.stringify(updatedOrders))
+    const updatedOrder = await response.json()
+    setOrders((prevOrders) =>
+      prevOrders.map((order) => (order.id === orderId ? updatedOrder : order))
+    )
+  }
+
+  const updateProductionStatus = async (orderId, status) => {
+    try {
+      const response = await fetch(`http://localhost:5000/api/orders/${orderId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ productionStatus: status }),
+      })
+
+      if (!response.ok) {
+        throw new Error("Failed to update production status")
+      }
+
+      const updatedOrder = await response.json()
+      setOrders((prevOrders) =>
+        prevOrders.map((order) => (order.id === orderId ? updatedOrder : order))
+      )
+    } catch (error) {
+      console.error("Error updating production status:", error)
+    }
+  }
+
+  const updateDeliveryInfo = async (orderId, trackingNumber, deliveryStatus) => {
+    try {
+      const response = await fetch("http://localhost:5000/api/delivery", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: orderId, trackingNumber, deliveryStatus }),
+      })
+
+      if (!response.ok) {
+        throw new Error("Failed to update delivery info")
+      }
+
+      const updatedOrder = await response.json()
+      setOrders((prevOrders) =>
+        prevOrders.map((order) => (order.id === orderId ? updatedOrder : order))
+      )
+    } catch (error) {
+      console.error("Error updating delivery info:", error)
+    }
   }
 
   return (

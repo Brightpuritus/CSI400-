@@ -1,0 +1,6 @@
+[
+  { "id": 1, "email": "customer@test.com", "password": "123456", "name": "ลูกค้าทดสอบ", "role": "customer" },
+  { "id": 2, "email": "employee@test.com", "password": "123456", "name": "พนักงานทดสอบ", "role": "employee" },
+  { "id": 3, "email": "manager@test.com", "password": "123456", "name": "ผู้จัดการทดสอบ", "role": "manager" },
+  { "id": 4, "email": "admin@test.com", "password": "123456", "name": "ผู้ดูแลระบบ", "role": "admin" }
+]

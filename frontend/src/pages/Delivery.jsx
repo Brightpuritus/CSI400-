@@ -22,6 +22,7 @@ function Delivery() {
       alert("กรุณากรอกเลขพัสดุ")
       return
     }
+
     updateDeliveryInfo(selectedOrder.id, trackingNumber, deliveryStatus)
     setSelectedOrder(null)
     setTrackingNumber("")

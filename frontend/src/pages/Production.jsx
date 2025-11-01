@@ -17,8 +17,8 @@ function Production() {
     ready: orders.filter(
       (o) =>
         o.productionStatus === "พร้อมจัดส่ง" &&
-        o.deliveryStatus !== "จัดส่งแล้ว" && // กรองออเดอร์ที่ยังไม่ได้จัดส่ง
-        o.status !== "เสร็จสิ้น" // กรองออเดอร์ที่เสร็จสิ้นแล้ว
+        o.deliveryStatus !== "จัดส่งแล้ว" &&
+        o.status !== "เสร็จสิ้น"
     ),
   }
 
@@ -103,7 +103,7 @@ function Production() {
                     <div className="order-footer">
                       <select
                         value={order.productionStatus}
-                        onChange={(e) => updateProductionStatus(order.id, e.target.value)}
+                        onChange={(e) => updateProductionStatus(order.id, e.target.value)} // เรียกใช้ฟังก์ชันเมื่อเปลี่ยนสถานะ
                         className="status-select"
                       >
                         <option value="รอเริ่มผลิต">รอเริ่มผลิต</option>

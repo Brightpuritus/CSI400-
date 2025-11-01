@@ -1,53 +1,53 @@
-"use client"
+"use client";
 
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom"
-import { AuthProvider, useAuth } from "./context/AuthContext"
-import { DataStoreProvider } from "./context/DataStore"
-import Navbar from "./components/Navbar"
-import Login from "./pages/Login"
-import Register from "./pages/Register"
-import CustomerOrders from "./pages/CustomerOrders"
-import NewOrder from "./pages/NewOrder"
-import Production from "./pages/Production"
-import Delivery from "./pages/Delivery"
-import Dashboard from "./pages/Dashboard"
-import Users from "./pages/Users"
-import "./App.css"
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { AuthProvider, useAuth } from "./context/AuthContext";
+import { DataStoreProvider } from "./context/DataStore";
+import Navbar from "./components/Navbar";
+import Login from "./pages/Login";
+import Register from "./pages/Register";
+import CustomerOrders from "./pages/CustomerOrders";
+import NewOrder from "./pages/NewOrder";
+import Production from "./pages/Production";
+import Delivery from "./pages/Delivery";
+import Dashboard from "./pages/Dashboard";
+import Users from "./pages/Users";
+import "./App.css";
 
 function ProtectedRoute({ children, allowedRoles }) {
-  const { user } = useAuth()
+  const { user } = useAuth();
 
   if (!user) {
-    return <Navigate to="/login" replace />
+    return <Navigate to="/login" replace />;
   }
 
   if (allowedRoles && !allowedRoles.includes(user.role)) {
-    return <Navigate to="/" replace />
+    return <Navigate to="/" replace />;
   }
 
-  return children
+  return children;
 }
 
 function Home() {
-  const { user } = useAuth()
+  const { user } = useAuth();
 
   if (!user) {
-    return <Navigate to="/login" replace />
+    return <Navigate to="/login" replace />;
   }
 
   if (user.role === "customer") {
-    return <Navigate to="/customer/orders" replace />
+    return <Navigate to="/customer/orders" replace />;
   } else if (user.role === "employee") {
-    return <Navigate to="/employee/production" replace />
+    return <Navigate to="/employee/production" replace />;
   } else if (user.role === "manager" || user.role === "admin") {
-    return <Navigate to="/manager/dashboard" replace />
+    return <Navigate to="/manager/dashboard" replace />;
   }
 
-  return <Navigate to="/login" replace />
+  return <Navigate to="/login" replace />;
 }
 
 function AppContent() {
-  const { user } = useAuth()
+  const { user } = useAuth();
 
   return (
     <div className="app">
@@ -109,7 +109,7 @@ function AppContent() {
         />
       </Routes>
     </div>
-  )
+  );
 }
 
 function App() {
@@ -121,7 +121,7 @@ function App() {
         </DataStoreProvider>
       </AuthProvider>
     </BrowserRouter>
-  )
+  );
 }
 
-export default App
+export default App;
