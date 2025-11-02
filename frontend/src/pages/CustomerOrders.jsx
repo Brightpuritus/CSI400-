@@ -5,10 +5,13 @@ import { useAuth } from "../context/AuthContext"
 import { useDataStore } from "../context/DataStore"
 import { Plus, Package, Calendar, DollarSign } from "lucide-react"
 import "./CustomerOrders.css"
+import { useState } from "react"
 
 function CustomerOrders() {
   const { user } = useAuth()
-  const { orders } = useDataStore()
+  const { orders, updatePaymentStatus } = useDataStore()
+  const [selectedOrder, setSelectedOrder] = useState(null)
+  const [paymentProof, setPaymentProof] = useState(null)
 
   const userOrders = user.role === "admin" ? orders : orders.filter((order) => order.customerId === user.id)
 
@@ -21,6 +24,14 @@ function CustomerOrders() {
       เสร็จสิ้น: "status-completed",
     }
     return colors[status] || "status-pending"
+  }
+
+  const handlePayment = (order) => {
+    const proof = paymentProof ? URL.createObjectURL(paymentProof) : null
+
+    updatePaymentStatus(order.id, order.paymentStatus, proof)
+    setSelectedOrder(null)
+    setPaymentProof(null)
   }
 
   return (
@@ -52,7 +63,7 @@ function CustomerOrders() {
               <div className="order-header">
                 <div>
                   <h3 className="order-id">คำสั่งซื้อ #{order.id}</h3>
-                  <span className={`status-badge ${getStatusColor(order.status)}`}>{order.status}</span>
+                  <span className={`status-badge ${getStatusColor(order.status)}`}>{order.productionStatus}</span>
                 </div>
               </div>
 
@@ -70,7 +81,7 @@ function CustomerOrders() {
                   <span>฿{order.totalWithVat.toLocaleString()}</span>
                 </div>
               </div>
-
+              
               <div className="order-items">
                 {order.items.map((item, idx) => (
                   <div key={idx} className="order-item">
@@ -94,8 +105,25 @@ function CustomerOrders() {
                   )}
                 </div>
               )}
+
+              <div className="payment-actions">
+                {order.paymentStatus === "ยังไม่ได้ชำระเงิน" && (
+                  <>
+                    <button onClick={() => setSelectedOrder(order)}>อัปโหลดหลักฐานการโอนเงิน</button>
+                  </>
+                )}
+                {order.paymentProof && <a href={order.paymentProof} target="_blank">ดูหลักฐานการโอน</a>}
+              </div>
             </div>
           ))}
+        </div>
+      )}
+
+      {selectedOrder && (
+        <div className="modal">
+          <h3>อัปโหลดหลักฐานการโอนเงิน</h3>
+          <input type="file" onChange={(e) => setPaymentProof(e.target.files[0])} />
+          <button onClick={() => handlePayment(selectedOrder)}>อัปโหลด</button>
         </div>
       )}
     </div>

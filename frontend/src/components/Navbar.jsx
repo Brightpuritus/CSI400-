@@ -47,6 +47,9 @@ function Navbar() {
                 <Truck size={18} />
                 <span>จัดส่งสินค้า</span>
               </Link>
+              <Link to="/employee/verify-payments" className="navbar-link">
+                <span>ยืนยันการชำระเงิน</span>
+              </Link>
             </>
           )}
 

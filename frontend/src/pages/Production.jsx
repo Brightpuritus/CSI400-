@@ -11,14 +11,27 @@ function Production() {
 
   // กรองออเดอร์ตามสถานะการผลิต
   const productionOrders = {
-    pending: orders.filter((o) => o.productionStatus === "รอเริ่มผลิต"),
-    inProgress: orders.filter((o) => o.productionStatus === "กำลังผลิต"),
-    packaging: orders.filter((o) => o.productionStatus === "บรรจุกระป๋อง"),
+    pending: orders.filter(
+      (o) =>
+        o.productionStatus === "รอเริ่มผลิต" &&
+        o.paymentStatus !== "ยังไม่ได้ชำระเงิน" // เพิ่มเงื่อนไขนี้
+    ),
+    inProgress: orders.filter(
+      (o) =>
+        o.productionStatus === "กำลังผลิต" &&
+        o.paymentStatus !== "ยังไม่ได้ชำระเงิน" // เพิ่มเงื่อนไขนี้
+    ),
+    packaging: orders.filter(
+      (o) =>
+        o.productionStatus === "บรรจุกระป๋อง" &&
+        o.paymentStatus !== "ยังไม่ได้ชำระเงิน" // เพิ่มเงื่อนไขนี้
+    ),
     ready: orders.filter(
       (o) =>
         o.productionStatus === "พร้อมจัดส่ง" &&
         o.deliveryStatus !== "จัดส่งแล้ว" &&
-        o.status !== "เสร็จสิ้น"
+        o.status !== "เสร็จสิ้น" &&
+        o.paymentStatus !== "ยังไม่ได้ชำระเงิน" // เพิ่มเงื่อนไขนี้
     ),
   };
 
@@ -140,7 +153,11 @@ function Production() {
     const next = idx < FLOW.length - 1 ? FLOW[idx + 1] : null;
 
     const move = (target) => {
-      if (!target) return;
+      if (!target) {
+        console.error("No target status provided");
+        return;
+      }
+      console.log(`Updating production status for order ${order.id} to ${target}`);
       updateProductionStatus(order.id, target);
     };
 

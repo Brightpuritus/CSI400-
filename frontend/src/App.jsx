@@ -13,6 +13,7 @@ import Delivery from "./pages/Delivery";
 import Dashboard from "./pages/Dashboard";
 import Users from "./pages/Users";
 import Stock from "./pages/Stock";
+import VerifyPayments from "./pages/VerifyPayments";
 import "./App.css";
 
 function ProtectedRoute({ children, allowedRoles }) {
@@ -88,6 +89,14 @@ function AppContent() {
           element={
             <ProtectedRoute allowedRoles={["employee", "admin"]}>
               <Delivery />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/employee/verify-payments"
+          element={
+            <ProtectedRoute allowedRoles={["employee", "admin"]}>
+              <VerifyPayments />
             </ProtectedRoute>
           }
         />

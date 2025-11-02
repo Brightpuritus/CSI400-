@@ -1,47 +1,9 @@
 [
   {
-    "id": "1762034824192",
-    "productionStatus": null,
-    "customerId": "1",
-    "customerName": "Admin",
-    "items": [
-      {
-        "productId": "1",
-        "productName": "ปลาทูน่าในน้ำมัน",
-        "price": 45,
-        "quantity": 1
-      }
-    ],
-    "subtotal": 45,
-    "vat": 3.1500000000000004,
-    "totalWithVat": 48.15,
-    "deliveryDate": "2025-11-08",
-    "trackingNumber": "1",
-    "deliveryStatus": "จัดส่งสำเร็จ",
-    "status": "เสร็จสิ้น"
-  },
-  {
-    "id": "1762093703928",
+    "id": "1762115258362",
     "productionStatus": "พร้อมจัดส่ง",
-    "customerId": 4,
-    "customerName": "ผู้ดูแลระบบ",
-    "items": [
-      {
-        "productId": "1",
-        "productName": "ปลาทูน่าในน้ำมัน",
-        "price": 45,
-        "quantity": 1
-      }
-    ],
-    "subtotal": 45,
-    "vat": 3.1500000000000004,
-    "totalWithVat": 48.15,
-    "deliveryDate": "2025-11-06",
-    "deliveryAddress": "บ้านของฉัน\n"
-  },
-  {
-    "id": "1762102156331",
-    "productionStatus": "รอเริ่มผลิต",
+    "paymentStatus": "ชำระมัดจำแล้ว",
+    "paymentProof": "blob:http://localhost:3000/96de8091-bedb-4397-9584-03225d1fdb5e",
     "customerId": 4,
     "customerName": "ผู้ดูแลระบบ",
     "items": [
@@ -50,13 +12,13 @@
         "productName": "ปลา",
         "size": "",
         "price": 10,
-        "quantity": 1
+        "quantity": 10
       }
     ],
-    "subtotal": 10,
-    "vat": 0.7000000000000001,
-    "totalWithVat": 10.7,
-    "deliveryDate": "2025-11-15",
-    "deliveryAddress": "บ้าน 50"
+    "subtotal": 100,
+    "vat": 7.000000000000001,
+    "totalWithVat": 107,
+    "deliveryDate": "2025-11-21",
+    "deliveryAddress": "บ้าน"
   }
 ]

@@ -50,27 +50,28 @@ export function DataStoreProvider({ children }) {
   }
 
   // DataStore.jsx
-const FLOW = ["รอเริ่มผลิต", "กำลังผลิต", "บรรจุกระป๋อง", "พร้อมจัดส่ง"];
+  const FLOW = ["รอเริ่มผลิต", "กำลังผลิต", "บรรจุกระป๋อง", "พร้อมจัดส่ง"]
 
-function updateProductionStatus(orderId, nextStatus) {
-  setOrders((prev) =>
-    prev.map((o) => {
-      if (o.id !== orderId) return o;
+  const updateProductionStatus = async (orderId, nextStatus) => {
+    try {
+      const response = await fetch(`http://localhost:5000/api/orders/${orderId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ productionStatus: nextStatus }),
+      });
 
-      const current = o.productionStatus || FLOW[0];
-      const curIdx = FLOW.indexOf(current);
-      const nextIdx = FLOW.indexOf(nextStatus);
+      if (!response.ok) {
+        throw new Error("Failed to update production status");
+      }
 
-      const isAdjacent =
-        curIdx !== -1 && nextIdx !== -1 && Math.abs(nextIdx - curIdx) === 1;
-
-      if (!isAdjacent) return o; // ไม่ให้ข้ามขั้น
-
-      return { ...o, productionStatus: nextStatus };
-    })
-  );
-}
-
+      const updatedOrder = await response.json();
+      setOrders((prev) =>
+        prev.map((order) => (order.id === orderId ? updatedOrder : order))
+      );
+    } catch (error) {
+      console.error("Error updating production status:", error);
+    }
+  };
 
   const updateDeliveryInfo = async (orderId, trackingNumber, deliveryStatus) => {
     try {
@@ -93,6 +94,30 @@ function updateProductionStatus(orderId, nextStatus) {
     }
   }
 
+  const updatePaymentStatus = async (orderId, paymentStatus, paymentProof) => {
+    const response = await fetch(`http://localhost:5000/api/orders/${orderId}/payment`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ paymentStatus, paymentProof }),
+    })
+    const updatedOrder = await response.json()
+    setOrders((prevOrders) =>
+      prevOrders.map((order) => (order.id === orderId ? updatedOrder : order))
+    )
+  }
+
+  const confirmPayment = async (orderId, paymentStatus) => {
+    const response = await fetch(`http://localhost:5000/api/orders/${orderId}/confirm-payment`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ paymentStatus }),
+    })
+    const updatedOrder = await response.json()
+    setOrders((prevOrders) =>
+      prevOrders.map((order) => (order.id === orderId ? updatedOrder : order))
+    )
+  }
+
   return (
     <DataStoreContext.Provider
       value={{
@@ -102,6 +127,8 @@ function updateProductionStatus(orderId, nextStatus) {
         updateOrderStatus,
         updateProductionStatus,
         updateDeliveryInfo,
+        updatePaymentStatus,
+        confirmPayment, // เพิ่มฟังก์ชันนี้
       }}
     >
       {children}
