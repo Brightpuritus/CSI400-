@@ -12,6 +12,7 @@ import Production from "./pages/Production";
 import Delivery from "./pages/Delivery";
 import Dashboard from "./pages/Dashboard";
 import Users from "./pages/Users";
+import Stock from "./pages/Stock";
 import "./App.css";
 
 function ProtectedRoute({ children, allowedRoles }) {
@@ -104,6 +105,14 @@ function AppContent() {
           element={
             <ProtectedRoute allowedRoles={["manager", "admin"]}>
               <Users />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/manager/stock"
+          element={
+            <ProtectedRoute allowedRoles={["manager", "admin"]}>
+              <Stock />
             </ProtectedRoute>
           }
         />

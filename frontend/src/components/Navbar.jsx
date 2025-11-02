@@ -2,7 +2,7 @@
 
 import { Link, useNavigate } from "react-router-dom"
 import { useAuth } from "../context/AuthContext"
-import { Package, LogOut, ShoppingCart, Factory, Truck, BarChart3, Users } from "lucide-react"
+import { Package, LogOut, ShoppingCart, Factory, Truck, BarChart3, Users, Box } from "lucide-react"
 import "./Navbar.css"
 
 function Navbar() {
@@ -55,6 +55,10 @@ function Navbar() {
               <Link to="/manager/dashboard" className="navbar-link">
                 <BarChart3 size={18} />
                 <span>รายงานยอดขาย</span>
+              </Link>
+              <Link to="/manager/stock" className="navbar-link">
+                <Box size={18} />
+                <span>สินค้าคงคลัง</span>
               </Link>
               <Link to="/manager/users" className="navbar-link">
                 <Users size={18} />

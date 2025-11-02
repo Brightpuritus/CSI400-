@@ -1,3 +1,24 @@
 [
-  { "id": "1", "name": "ปลาทูน่าในน้ำมัน", "price": 45, "stock": 100 }
+  {
+    "id": "1",
+    "name": "ปลาทูน่าในน้ำมัน",
+    "price": 45,
+    "stock": 100
+  },
+  {
+    "id": "1762101863413",
+    "name": "ปลา",
+    "price": 10,
+    "stock": 120,
+    "imageUrl": "https://f.ptcdn.info/897/027/000/1422446144-IMG1935JPG-o.jpg",
+    "createdAt": "2025-11-02T16:44:23.413Z"
+  },
+  {
+    "id": "1762101930904",
+    "name": "ปลา2",
+    "price": 222,
+    "stock": 2222,
+    "imageUrl": "https://img.th.my-best.com/product_images/8ddc3c2803662067abbe7c9f97261879.jpg?ixlib=rails-4.3.1&q=70&lossless=0&w=800&h=800&fit=clip&s=f637a391b0540bdccea80357b115f89e",
+    "createdAt": "2025-11-02T16:45:30.904Z"
+  }
 ]
