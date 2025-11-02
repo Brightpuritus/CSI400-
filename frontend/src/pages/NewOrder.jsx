@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
 import { useAuth } from "../context/AuthContext"
 import { useDataStore } from "../context/DataStore"
@@ -9,11 +9,42 @@ import "./NewOrder.css"
 
 function NewOrder() {
   const { user } = useAuth()
-  const { products, addOrder } = useDataStore()
+  const { addOrder } = useDataStore() // เก็บ addOrder ไว้เหมือนเดิม
   const navigate = useNavigate()
+  const [products, setProducts] = useState([])
+  const [loadingProducts, setLoadingProducts] = useState(true)
   const [cart, setCart] = useState([])
   const [deliveryDate, setDeliveryDate] = useState("")
-  const [deliveryAddress, setDeliveryAddress] = useState("") // เพิ่ม state ที่อยู่
+  const [deliveryAddress, setDeliveryAddress] = useState("")
+
+  useEffect(() => {
+    let mounted = true
+    async function loadProducts() {
+      setLoadingProducts(true)
+      // พยายามเรียกแบบ relative ก่อน แล้ว fallback ไปที่พอร์ตที่เป็นไปได้
+      const urls = ["/api/products", "http://localhost:5000/api/products", "http://localhost:4000/api/products"]
+      for (const url of urls) {
+        try {
+          const res = await fetch(url)
+          if (!res.ok) continue
+          const data = await res.json()
+          if (mounted) {
+            setProducts(Array.isArray(data) ? data : [])
+            setLoadingProducts(false)
+          }
+          return
+        } catch (e) {
+          // try next
+        }
+      }
+      if (mounted) {
+        setProducts([])
+        setLoadingProducts(false)
+      }
+    }
+    loadProducts()
+    return () => { mounted = false }
+  }, [])
 
   const addToCart = (product) => {
     const existingItem = cart.find((item) => item.productId === product.id)
@@ -25,8 +56,8 @@ function NewOrder() {
         {
           productId: product.id,
           productName: product.name,
-          size: product.size,
-          price: product.price,
+          size: product.size || "",
+          price: product.price || 0,
           quantity: 1,
         },
       ])
@@ -74,7 +105,7 @@ function NewOrder() {
       vat,
       totalWithVat: total,
       deliveryDate,
-      deliveryAddress, // ส่งที่อยู่ไปด้วย
+      deliveryAddress,
       productionStatus: "รอเริ่มผลิต",
     })
 
@@ -100,22 +131,30 @@ function NewOrder() {
         <div className="products-section">
           <h2 className="section-title">สินค้าทั้งหมด</h2>
           <div className="products-grid">
-            {products.map((product) => (
-              <div key={product.id} className="product-card">
-                <img src={product.image || "/placeholder.svg"} alt={product.name} className="product-image" />
-                <div className="product-info">
-                  <h3 className="product-name">{product.name}</h3>
-                  <p className="product-size">{product.size}</p>
-                  <div className="product-footer">
-                    <span className="product-price">฿{product.price}</span>
-                    <button onClick={() => addToCart(product)} className="btn btn-secondary btn-sm">
-                      <Plus size={16} />
-                      เพิ่ม
-                    </button>
+            {loadingProducts ? (
+              <div>กำลังโหลดสินค้า...</div>
+            ) : (
+              products.map((product) => (
+                <div key={product.id} className="product-card">
+                  <img
+                    src={product.imageUrl || product.image || "/placeholder.svg"}
+                    alt={product.name}
+                    className="product-image"
+                  />
+                  <div className="product-info">
+                    <h3 className="product-name">{product.name}</h3>
+                    <p className="product-size">{product.size}</p>
+                    <div className="product-footer">
+                      <span className="product-price">฿{product.price}</span>
+                      <button onClick={() => addToCart(product)} className="btn btn-secondary btn-sm">
+                        <Plus size={16} />
+                        เพิ่ม
+                      </button>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              ))
+            )}
           </div>
         </div>
 
