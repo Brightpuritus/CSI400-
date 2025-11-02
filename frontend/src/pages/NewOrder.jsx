@@ -13,6 +13,7 @@ function NewOrder() {
   const navigate = useNavigate()
   const [cart, setCart] = useState([])
   const [deliveryDate, setDeliveryDate] = useState("")
+  const [deliveryAddress, setDeliveryAddress] = useState("") // เพิ่ม state ที่อยู่
 
   const addToCart = (product) => {
     const existingItem = cart.find((item) => item.productId === product.id)
@@ -60,6 +61,10 @@ function NewOrder() {
       alert("กรุณาเลือกวันที่ต้องการรับสินค้า")
       return
     }
+    if (!deliveryAddress.trim()) {
+      alert("กรุณากรอกที่อยู่จัดส่ง")
+      return
+    }
 
     addOrder({
       customerId: user.id,
@@ -69,7 +74,8 @@ function NewOrder() {
       vat,
       totalWithVat: total,
       deliveryDate,
-      productionStatus: "รอเริ่มผลิต", // เพิ่มสถานะเริ่มต้น
+      deliveryAddress, // ส่งที่อยู่ไปด้วย
+      productionStatus: "รอเริ่มผลิต",
     })
 
     alert("สั่งซื้อสำเร็จ!")
@@ -180,6 +186,21 @@ function NewOrder() {
                       className="form-input"
                       required
                       min={new Date().toISOString().split("T")[0]}
+                    />
+                  </div>
+
+                  <div className="form-group">
+                    <label htmlFor="deliveryAddress" className="form-label">
+                      ที่อยู่จัดส่ง
+                    </label>
+                    <textarea
+                      id="deliveryAddress"
+                      value={deliveryAddress}
+                      onChange={(e) => setDeliveryAddress(e.target.value)}
+                      className="form-input"
+                      rows={3}
+                      placeholder="ชื่อผู้รับ, ที่อยู่, แขวง/ตำบล, เขต/อำเภอ, จังหวัด, รหัสไปรษณีย์, เบอร์โทร"
+                      required
                     />
                   </div>
 

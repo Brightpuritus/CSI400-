@@ -60,6 +60,7 @@ function Delivery() {
                     <span className="order-id">คำสั่งซื้อ #{order.id}</span>
                     <span className="customer-name">{order.customerName}</span>
                   </div>
+
                   <div className="delivery-card-items">
                     {order.items.map((item, idx) => (
                       <div key={idx} className="item-row">
@@ -67,6 +68,15 @@ function Delivery() {
                       </div>
                     ))}
                   </div>
+
+                  {/* แสดงที่อยู่จัดส่ง ถ้ามี */}
+                  {order.deliveryAddress && (
+                    <div className="tracking-info" style={{ whiteSpace: "pre-line" }}>
+                      <strong>ที่อยู่จัดส่ง:</strong>
+                      <div style={{ marginTop: 6 }}>{order.deliveryAddress}</div>
+                    </div>
+                  )}
+
                   <button onClick={() => openDialog(order)} className="btn btn-primary btn-sm btn-full">
                     <Truck size={16} />
                     เริ่มจัดส่ง
