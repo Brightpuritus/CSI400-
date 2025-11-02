@@ -1,13 +1,13 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { useDataStore } from "../context/DataStore"
-import { Factory, Package, Clock, CheckCircle } from "lucide-react"
-import "./Production.css"
+import { useState } from "react";
+import { useDataStore } from "../context/DataStore";
+import { Factory, Package, Clock, CheckCircle } from "lucide-react";
+import "./Production.css";
 
 function Production() {
-  const { orders, updateProductionStatus } = useDataStore()
-  const [activeTab, setActiveTab] = useState("pending")
+  const { orders, updateProductionStatus } = useDataStore();
+  const [activeTab, setActiveTab] = useState("pending");
 
   // กรองออเดอร์ตามสถานะการผลิต
   const productionOrders = {
@@ -20,21 +20,51 @@ function Production() {
         o.deliveryStatus !== "จัดส่งแล้ว" &&
         o.status !== "เสร็จสิ้น"
     ),
-  }
+  };
 
   const stats = [
-    { label: "รอเริ่มผลิต", value: productionOrders.pending.length, icon: Clock, color: "stat-warning" },
-    { label: "กำลังผลิต", value: productionOrders.inProgress.length, icon: Factory, color: "stat-info" },
-    { label: "บรรจุกระป๋อง", value: productionOrders.packaging.length, icon: Package, color: "stat-primary" },
-    { label: "พร้อมจัดส่ง", value: productionOrders.ready.length, icon: CheckCircle, color: "stat-success" },
-  ]
+    {
+      label: "รอเริ่มผลิต",
+      value: productionOrders.pending.length,
+      icon: Clock,
+      color: "stat-warning",
+    },
+    {
+      label: "กำลังผลิต",
+      value: productionOrders.inProgress.length,
+      icon: Factory,
+      color: "stat-info",
+    },
+    {
+      label: "บรรจุกระป๋อง",
+      value: productionOrders.packaging.length,
+      icon: Package,
+      color: "stat-primary",
+    },
+    {
+      label: "พร้อมจัดส่ง",
+      value: productionOrders.ready.length,
+      icon: CheckCircle,
+      color: "stat-success",
+    },
+  ];
 
   const tabs = [
     { id: "pending", label: "รอเริ่มผลิต", orders: productionOrders.pending },
-    { id: "inProgress", label: "กำลังผลิต", orders: productionOrders.inProgress },
-    { id: "packaging", label: "บรรจุกระป๋อง", orders: productionOrders.packaging },
+    {
+      id: "inProgress",
+      label: "กำลังผลิต",
+      orders: productionOrders.inProgress,
+    },
+    {
+      id: "packaging",
+      label: "บรรจุกระป๋อง",
+      orders: productionOrders.packaging,
+    },
     { id: "ready", label: "พร้อมจัดส่ง", orders: productionOrders.ready },
-  ]
+  ];
+
+  const FLOW = ["รอเริ่มผลิต", "กำลังผลิต", "บรรจุกระป๋อง", "พร้อมจัดส่ง"];
 
   return (
     <div className="page-container">
@@ -47,7 +77,7 @@ function Production() {
 
       <div className="stats-grid">
         {stats.map((stat, idx) => {
-          const Icon = stat.icon
+          const Icon = stat.icon;
           return (
             <div key={idx} className={`stat-card ${stat.color}`}>
               <Icon size={24} />
@@ -56,7 +86,7 @@ function Production() {
                 <div className="stat-label">{stat.label}</div>
               </div>
             </div>
-          )
+          );
         })}
       </div>
 
@@ -88,7 +118,9 @@ function Production() {
                   <div key={order.id} className="order-card">
                     <div className="order-header">
                       <h3 className="order-id">คำสั่งซื้อ #{order.id}</h3>
-                      <span className="customer-name">{order.customerName}</span>
+                      <span className="customer-name">
+                        {order.customerName}
+                      </span>
                     </div>
 
                     <div className="order-items">
@@ -100,18 +132,54 @@ function Production() {
                       ))}
                     </div>
 
-                    <div className="order-footer">
-                      <select
-                        value={order.productionStatus}
-                        onChange={(e) => updateProductionStatus(order.id, e.target.value)} // เรียกใช้ฟังก์ชันเมื่อเปลี่ยนสถานะ
-                        className="status-select"
-                      >
-                        <option value="รอเริ่มผลิต">รอเริ่มผลิต</option>
-                        <option value="กำลังผลิต">กำลังผลิต</option>
-                        <option value="บรรจุกระป๋อง">บรรจุกระป๋อง</option>
-                        <option value="พร้อมจัดส่ง">พร้อมจัดส่ง</option>
-                      </select>
-                    </div>
+                    <div className="status-controls">
+  {(() => {
+    const current = order.productionStatus || FLOW[0];
+    const idx = FLOW.indexOf(current);
+    const prev = idx > 0 ? FLOW[idx - 1] : null;
+    const next = idx < FLOW.length - 1 ? FLOW[idx + 1] : null;
+
+    const move = (target) => {
+      if (!target) return;
+      updateProductionStatus(order.id, target);
+    };
+
+    return (
+      <>
+        {/* แสดงสถานะปัจจุบัน */}
+        <span className="current-status">
+          สถานะปัจจุบัน: <b>{current}</b>
+        </span>
+
+        {/* กล่องปุ่มอยู่บรรทัดใหม่ */}
+        <div className="status-actions">
+          <button
+            type="button"
+            className="status-btn back"
+            onClick={() => move(prev)}
+            disabled={!prev}
+            title={prev ? `ย้อนกลับ: ${prev}` : "อยู่ขั้นแรกแล้ว"}
+          >
+            ← ย้อนกลับ
+          </button>
+
+          <button
+            type="button"
+            className="status-btn next"
+            onClick={() => move(next)}
+            disabled={!next}
+            title={
+              next ? `ไปขั้นต่อไป: ${next}` : "ถึงขั้นสุดท้ายแล้ว"
+            }
+          >
+            ไปขั้นต่อไป →
+          </button>
+        </div>
+      </>
+    );
+  })()}
+</div>
+
                   </div>
                 ))}
             </div>
@@ -119,7 +187,7 @@ function Production() {
         </div>
       </div>
     </div>
-  )
+  );
 }
 
-export default Production
+export default Production;

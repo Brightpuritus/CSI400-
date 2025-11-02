@@ -49,26 +49,28 @@ export function DataStoreProvider({ children }) {
     )
   }
 
-  const updateProductionStatus = async (orderId, status) => {
-    try {
-      const response = await fetch(`http://localhost:5000/api/orders/${orderId}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ productionStatus: status }),
-      })
+  // DataStore.jsx
+const FLOW = ["รอเริ่มผลิต", "กำลังผลิต", "บรรจุกระป๋อง", "พร้อมจัดส่ง"];
 
-      if (!response.ok) {
-        throw new Error("Failed to update production status")
-      }
+function updateProductionStatus(orderId, nextStatus) {
+  setOrders((prev) =>
+    prev.map((o) => {
+      if (o.id !== orderId) return o;
 
-      const updatedOrder = await response.json()
-      setOrders((prevOrders) =>
-        prevOrders.map((order) => (order.id === orderId ? updatedOrder : order))
-      )
-    } catch (error) {
-      console.error("Error updating production status:", error)
-    }
-  }
+      const current = o.productionStatus || FLOW[0];
+      const curIdx = FLOW.indexOf(current);
+      const nextIdx = FLOW.indexOf(nextStatus);
+
+      const isAdjacent =
+        curIdx !== -1 && nextIdx !== -1 && Math.abs(nextIdx - curIdx) === 1;
+
+      if (!isAdjacent) return o; // ไม่ให้ข้ามขั้น
+
+      return { ...o, productionStatus: nextStatus };
+    })
+  );
+}
+
 
   const updateDeliveryInfo = async (orderId, trackingNumber, deliveryStatus) => {
     try {
