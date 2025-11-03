@@ -81,6 +81,7 @@ function NewOrder() {
   const subtotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0)
   const vat = subtotal * 0.07
   const total = subtotal + vat
+  const deposit = total * 0.3; // มัดจำ 30%
 
   const handleSubmit = (e) => {
     e.preventDefault()
@@ -104,8 +105,10 @@ function NewOrder() {
       subtotal,
       vat,
       totalWithVat: total,
+      depositAmount: deposit,
       deliveryDate,
       deliveryAddress,
+      paymentStatus: "ยังไม่ได้ชำระเงิน", // เพิ่มสถานะเริ่มต้น
       productionStatus: "รอเริ่มผลิต",
     })
 

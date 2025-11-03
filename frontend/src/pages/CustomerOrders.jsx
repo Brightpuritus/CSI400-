@@ -80,6 +80,11 @@ function CustomerOrders() {
                   <DollarSign size={16} />
                   <span>฿{order.totalWithVat.toLocaleString()}</span>
                 </div>
+                <div className="order-detail-item">
+                  <DollarSign size={16} />
+                  <span>มัดจำ 30%: ฿{(order.depositAmount ?? order.totalWithVat * 0.3).toLocaleString()}</span>
+                </div>
+
               </div>
               
               <div className="order-items">
