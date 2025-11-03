@@ -17,3 +17,67 @@
 .modal-actions { display:flex; justify-content:flex-end; gap:8px; margin-top:12px; }
 .btn-cancel { background:#f1f5f9; border:none; padding:8px 10px; border-radius:8px; cursor:pointer; }
 .btn-confirm { background:#0b66f0; color:#fff; border:none; padding:8px 10px; border-radius:8px; cursor:pointer; }
+/* improved edit button */
+.btn-edit {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: linear-gradient(90deg,#ffffff,#f5fbff);
+  color: #0f172a;
+  border: 1px solid rgba(15,23,42,0.06);
+  padding: 6px 10px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.9rem;
+  box-shadow: 0 6px 18px rgba(2,6,23,0.06);
+  transition: transform 180ms cubic-bezier(.2,.9,.3,1), box-shadow 180ms, background 180ms;
+}
+
+/* small pen icon before text */
+.btn-edit::before {
+  content: "✏️";
+  display: inline-block;
+  font-size: 14px;
+  line-height: 1;
+  margin-right: 4px;
+}
+
+/* hover / active / focus */
+.btn-edit:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 14px 30px rgba(2,6,23,0.10);
+  background: linear-gradient(90deg,#eef7ff,#e6f2ff);
+}
+.btn-edit:active { transform: translateY(0); }
+.btn-edit:focus {
+  outline: 2px solid rgba(37,99,235,0.16);
+  outline-offset: 2px;
+}
+
+/* delete button */
+.btn-delete{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  background: linear-gradient(180deg,#ffeced,#ffe8ea);
+  color:#7f1d1d;
+  border:1px solid rgba(127,29,29,0.12);
+  padding:6px 10px;
+  border-radius:10px;
+  cursor:pointer;
+  font-weight:600;
+  box-shadow: 0 6px 14px rgba(127,29,29,0.04);
+  transition: transform 160ms, box-shadow 160ms, background 160ms;
+}
+.btn-delete:hover{ transform: translateY(-2px); box-shadow: 0 14px 26px rgba(127,29,29,0.08); background: linear-gradient(180deg,#ffd8da,#ffccd0); }
+
+/* make manage column content aligned and compact */
+.stock-table td:last-child {
+  white-space: nowrap;
+  width: 120px;
+}
+/* smaller spacing for mobile */
+@media (max-width: 780px) {
+  .btn-edit { padding: 8px 10px; border-radius: 8px; }
+}
