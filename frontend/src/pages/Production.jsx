@@ -146,57 +146,63 @@ function Production() {
                     </div>
 
                     <div className="status-controls">
-  {(() => {
-    const current = order.productionStatus || FLOW[0];
-    const idx = FLOW.indexOf(current);
-    const prev = idx > 0 ? FLOW[idx - 1] : null;
-    const next = idx < FLOW.length - 1 ? FLOW[idx + 1] : null;
+                      {(() => {
+                        const current = order.productionStatus || FLOW[0];
+                        const idx = FLOW.indexOf(current);
+                        const prev = idx > 0 ? FLOW[idx - 1] : null;
+                        const next =
+                          idx < FLOW.length - 1 ? FLOW[idx + 1] : null;
 
-    const move = (target) => {
-      if (!target) {
-        console.error("No target status provided");
-        return;
-      }
-      console.log(`Updating production status for order ${order.id} to ${target}`);
-      updateProductionStatus(order.id, target);
-    };
+                        // 🔹 เงื่อนไขห้ามย้อนกลับเมื่อถึง "บรรจุกระป๋อง"
+                        const canGoBack = prev && current !== "บรรจุกระป๋อง";
 
-    return (
-      <>
-        {/* แสดงสถานะปัจจุบัน */}
-        <span className="current-status">
-          สถานะปัจจุบัน: <b>{current}</b>
-        </span>
+                        const move = (target) => {
+                          if (!target) return;
+                          console.log(
+                            `Updating production status for order ${order.id} to ${target}`
+                          );
+                          updateProductionStatus(order.id, target);
+                        };
 
-        {/* กล่องปุ่มอยู่บรรทัดใหม่ */}
-        <div className="status-actions">
-          <button
-            type="button"
-            className="status-btn back"
-            onClick={() => move(prev)}
-            disabled={!prev}
-            title={prev ? `ย้อนกลับ: ${prev}` : "อยู่ขั้นแรกแล้ว"}
-          >
-            ← ย้อนกลับ
-          </button>
+                        return (
+                          <>
+                            <span className="current-status">
+                              สถานะปัจจุบัน: <b>{current}</b>
+                            </span>
 
-          <button
-            type="button"
-            className="status-btn next"
-            onClick={() => move(next)}
-            disabled={!next}
-            title={
-              next ? `ไปขั้นต่อไป: ${next}` : "ถึงขั้นสุดท้ายแล้ว"
-            }
-          >
-            ไปขั้นต่อไป →
-          </button>
-        </div>
-      </>
-    );
-  })()}
-</div>
+                            <div className="status-actions">
+                              <button
+                                type="button"
+                                className="status-btn back"
+                                onClick={() => move(prev)}
+                                disabled={!canGoBack}
+                                title={
+                                  !canGoBack
+                                    ? "ไม่สามารถย้อนกลับจากขั้นตอนบรรจุกระป๋องได้"
+                                    : `ย้อนกลับ: ${prev}`
+                                }
+                              >
+                                ← ย้อนกลับ
+                              </button>
 
+                              <button
+                                type="button"
+                                className="status-btn next"
+                                onClick={() => move(next)}
+                                disabled={!next}
+                                title={
+                                  next
+                                    ? `ไปขั้นต่อไป: ${next}`
+                                    : "ถึงขั้นสุดท้ายแล้ว"
+                                }
+                              >
+                                ไปขั้นต่อไป →
+                              </button>
+                            </div>
+                          </>
+                        );
+                      })()}
+                    </div>
                   </div>
                 ))}
             </div>
