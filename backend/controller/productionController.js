@@ -1,4 +1,5 @@
 const { readJSON, writeJSON } = require("../utils/fileUtils")
+const productsPath = path.join(__dirname, "../data/products.json");
 
 const getProduction = (req, res) => {
   const production = readJSON("production.json")

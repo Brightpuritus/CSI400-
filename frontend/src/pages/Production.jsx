@@ -6,7 +6,7 @@ import { Factory, Package, Clock, CheckCircle } from "lucide-react";
 import "./Production.css";
 
 function Production() {
-  const { orders, updateProductionStatus } = useDataStore();
+  const { orders, updateProductionStatus,updateStock } = useDataStore();
   const [activeTab, setActiveTab] = useState("pending");
 
   // กรองออเดอร์ตามสถานะการผลิต
@@ -158,10 +158,18 @@ function Production() {
 
                         const move = (target) => {
                           if (!target) return;
-                          console.log(
-                            `Updating production status for order ${order.id} to ${target}`
-                          );
+
+                          console.log(`Updating production status for order ${order.id} to ${target}`);
+
+                          // เรียกใช้ updateProductionStatus
                           updateProductionStatus(order.id, target);
+
+                          // เพิ่มสินค้าใน stock เมื่อเปลี่ยนเป็น "พร้อมจัดส่ง"
+                          if (target === "พร้อมจัดส่ง" && order.productionStatus === "บรรจุกระป๋อง") {
+                            order.items.forEach((item) => {
+                              updateStock(item.productId, item.quantity); // ตรวจสอบว่าฟังก์ชันนี้ถูกเรียกใช้อย่างถูกต้อง
+                            });
+                          }
                         };
 
                         return (

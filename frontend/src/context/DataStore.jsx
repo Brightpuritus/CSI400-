@@ -7,6 +7,7 @@ const DataStoreContext = createContext(null)
 export function DataStoreProvider({ children }) {
   const [products, setProducts] = useState([])
   const [orders, setOrders] = useState([])
+  const [loading, setLoading] = useState(false);
 
   // ดึงข้อมูลสินค้าและคำสั่งซื้อจาก Backend
   useEffect(() => {
@@ -25,6 +26,20 @@ export function DataStoreProvider({ children }) {
     fetchProducts()
     fetchOrders()
   }, [])
+
+  async function loadProducts() {
+    setLoading(true);
+    try {
+      const res = await fetch("http://localhost:5000/api/products");
+      const data = await res.json();
+      setProducts(Array.isArray(data) ? data : []);
+    } catch (err) {
+      console.error(err);
+      setProducts([]);
+    } finally {
+      setLoading(false);
+    }
+  }
 
   const addOrder = async (order) => {
     const response = await fetch("http://localhost:5000/api/orders", {
@@ -52,8 +67,9 @@ export function DataStoreProvider({ children }) {
   // DataStore.jsx
   const FLOW = ["รอเริ่มผลิต", "กำลังผลิต", "บรรจุกระป๋อง", "พร้อมจัดส่ง"]
 
-  const updateProductionStatus = async (orderId, nextStatus) => {
+  async function updateProductionStatus(orderId, nextStatus) {
     try {
+      console.log("Updating production status for order:", orderId, "to:", nextStatus);
       const response = await fetch(`http://localhost:5000/api/orders/${orderId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
@@ -65,13 +81,48 @@ export function DataStoreProvider({ children }) {
       }
 
       const updatedOrder = await response.json();
+
+      // เพิ่มสินค้าใน stock เมื่อเปลี่ยนเป็น "พร้อมจัดส่ง"
+      if (nextStatus === "พร้อมจัดส่ง" && updatedOrder.productionStatus === "บรรจุกระป๋อง") {
+        for (const item of updatedOrder.items) {
+          await updateStock(item.productId, item.quantity);
+        }
+      }
+
+      // อัปเดตคำสั่งซื้อใน Frontend
       setOrders((prev) =>
         prev.map((order) => (order.id === orderId ? updatedOrder : order))
       );
     } catch (error) {
       console.error("Error updating production status:", error);
     }
-  };
+  }
+
+  async function updateStock(productId, quantity) {
+    try {
+      console.log("Updating stock for product:", productId, "with quantity:", quantity);
+      const res = await fetch("http://localhost:5000/api/products/update-stock", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ productId, quantity }), // ส่งข้อมูลในรูปแบบ JSON
+      });
+
+      if (!res.ok) {
+        throw new Error("Failed to update stock");
+      }
+
+      const updatedProduct = await res.json();
+
+      // อัปเดต stock ใน Frontend
+      setProducts((prevProducts) =>
+        prevProducts.map((product) =>
+          product.id === updatedProduct.id ? updatedProduct : product
+        )
+      );
+    } catch (err) {
+      console.error("Error updating stock:", err);
+    }
+  }
 
   const updateDeliveryInfo = async (orderId, trackingNumber, deliveryStatus) => {
     try {
@@ -128,7 +179,9 @@ export function DataStoreProvider({ children }) {
         updateProductionStatus,
         updateDeliveryInfo,
         updatePaymentStatus,
-        confirmPayment, // เพิ่มฟังก์ชันนี้
+        confirmPayment,
+        updateStock, // ตรวจสอบว่าถูกส่งออกใน Provider
+        loadProducts,
       }}
     >
       {children}

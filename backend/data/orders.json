@@ -1,8 +1,8 @@
 [
   {
-    "id": "1762178811279",
+    "id": "1762206008230",
     "productionStatus": "พร้อมจัดส่ง",
-    "paymentStatus": "ชำระมัดจำแล้ว",
+    "paymentStatus": "ชำระทั้งหมดแล้ว",
     "paymentProof": null,
     "customerId": 4,
     "customerName": "ผู้ดูแลระบบ",
@@ -12,15 +12,14 @@
         "productName": "ปลา",
         "size": "",
         "price": 10,
-        "quantity": 5
+        "quantity": 1
       }
     ],
-    "subtotal": 50,
-    "vat": 3.5000000000000004,
-    "totalWithVat": 53.5,
-    "deliveryDate": "2025-11-12",
-    "deliveryAddress": "บ้าน1",
-    "trackingNumber": "ำ",
-    "deliveryStatus": "กำลังจัดส่ง"
+    "subtotal": 10,
+    "vat": 0.7000000000000001,
+    "totalWithVat": 10.7,
+    "depositAmount": 3.2099999999999995,
+    "deliveryDate": "2025-11-14",
+    "deliveryAddress": "s"
   }
 ]

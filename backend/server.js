@@ -7,7 +7,7 @@ const userRoutes = require("./routes/userRoutes")
 const orderRoutes = require("./routes/orderRoutes")
 const productionRoutes = require("./routes/productionRoutes")
 const deliveryRoutes = require("./routes/deliveryRoutes")
-const productsRouter = require("./routes/products")
+const productRoutes = require("./routes/productRoutes")
 
 const app = express()
 
@@ -19,7 +19,7 @@ app.use(express.json())
 app.use("/api/auth", authRoutes)
 app.use("/api/users", userRoutes)
 app.use("/api/orders", orderRoutes)
-app.use("/api/products", productsRouter)
+app.use("/api/products", productRoutes)
 app.use("/api/production", productionRoutes)
 app.use("/api/delivery", deliveryRoutes)
 

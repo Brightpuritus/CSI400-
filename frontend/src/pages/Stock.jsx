@@ -19,16 +19,16 @@ export default function Stock() {
   }, [])
 
   async function loadProducts() {
-    setLoading(true)
+    setLoading(true);
     try {
-      const res = await fetch("http://localhost:5000/api/products")
-      const data = await res.json()
-      setProducts(Array.isArray(data) ? data : [])
+      const res = await fetch("http://localhost:5000/api/products");
+      const data = await res.json();
+      setProducts(Array.isArray(data) ? data : []);
     } catch (err) {
-      console.error(err)
-      setProducts([])
+      console.error(err);
+      setProducts([]);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
   }
 
