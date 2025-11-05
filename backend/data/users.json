@@ -4,22 +4,14 @@
     "email": "customer@test.com",
     "password": "123456",
     "name": "ลูกค้าทดสอบ",
-<<<<<<< HEAD
     "role": "customer"
-=======
-    "role": "employee"
->>>>>>> 507f3c415aac562e3eccead63230e12dfb71dce1
   },
   {
     "id": 2,
     "email": "employee@test.com",
     "password": "123456",
     "name": "พนักงานทดสอบ",
-<<<<<<< HEAD
     "role": "employee"
-=======
-    "role": "customer"
->>>>>>> 507f3c415aac562e3eccead63230e12dfb71dce1
   },
   {
     "id": 3,
@@ -34,7 +26,6 @@
     "password": "123456",
     "name": "ผู้ดูแลระบบ",
     "role": "admin"
-<<<<<<< HEAD
   },
   {
     "id": "1762354126432",
@@ -51,7 +42,5 @@
     "name": "nigga111",
     "role": "customer",
     "createdAt": "2025-11-05T14:49:57.863Z"
-=======
->>>>>>> 507f3c415aac562e3eccead63230e12dfb71dce1
   }
 ]
