@@ -2,7 +2,6 @@
 
 import { useState } from "react"
 import { useNavigate, Link } from "react-router-dom"
-import { useAuth } from "../context/AuthContext"
 import { User, Mail, Lock, AlertCircle, CheckCircle } from "lucide-react"
 import "./Login.css"
 
@@ -10,24 +9,38 @@ function Register() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [name, setName] = useState("")
-  const [role, setRole] = useState("customer")
   const [error, setError] = useState("")
   const [success, setSuccess] = useState(false)
-  const { register } = useAuth()
+  const [submitting, setSubmitting] = useState(false)
   const navigate = useNavigate()
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
     setError("")
     setSuccess(false)
-
-    if (register(email, password, name, role)) {
-      setSuccess(true)
-      setTimeout(() => {
-        navigate("/login")
-      }, 2000)
-    } else {
-      setError("อีเมลนี้ถูกใช้งานแล้ว")
+    if (!name.trim() || !email.trim() || !password) {
+      setError("กรุณากรอกข้อมูลให้ครบ")
+      return
+    }
+    setSubmitting(true)
+    try {
+      const res = await fetch("http://localhost:5000/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: email.trim(), password, name: name.trim() }),
+      })
+      const data = await res.json().catch(() => ({}))
+      if (res.status === 201) {
+        setSuccess(true)
+        setTimeout(() => navigate("/login"), 1400)
+      } else {
+        setError(data.error || "สมัครไม่สำเร็จ")
+      }
+    } catch (err) {
+      console.error("Register fetch error:", err)
+      setError("เกิดข้อผิดพลาดติดต่อเซิร์ฟเวอร์")
+    } finally {
+      setSubmitting(false)
     }
   }
 
@@ -101,21 +114,8 @@ function Register() {
             />
           </div>
 
-          <div className="form-group">
-            <label htmlFor="role" className="form-label">
-              <User size={16} />
-              ประเภทผู้ใช้
-            </label>
-            <select id="role" value={role} onChange={(e) => setRole(e.target.value)} className="form-input" required>
-              <option value="customer">ลูกค้า</option>
-              <option value="employee">พนักงาน</option>
-              <option value="manager">ผู้จัดการ</option>
-              <option value="admin">ผู้ดูแลระบบ</option>
-            </select>
-          </div>
-
-          <button type="submit" className="btn btn-primary btn-full">
-            ลงทะเบียน
+          <button type="submit" className="btn btn-primary btn-full" disabled={submitting}>
+            {submitting ? "กำลังสมัคร..." : "ลงทะเบียน"}
           </button>
         </form>
 

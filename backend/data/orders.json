@@ -50,5 +50,51 @@
     "trackingNumber": "2",
     "deliveryStatus": "จัดส่งสำเร็จ",
     "status": "เสร็จสิ้น"
+  },
+  {
+    "id": "1762354174936",
+    "productionStatus": "รอเริ่มผลิต",
+    "paymentStatus": "ยังไม่ได้ชำระเงิน",
+    "paymentProof": null,
+    "customerId": "1762354126432",
+    "customerName": "halo111",
+    "items": [
+      {
+        "productId": "1762101863413",
+        "productName": "ปลา",
+        "size": "",
+        "price": 10,
+        "quantity": 10
+      }
+    ],
+    "subtotal": 100,
+    "vat": 7.000000000000001,
+    "totalWithVat": 107,
+    "depositAmount": 32.1,
+    "deliveryDate": "2025-11-27",
+    "deliveryAddress": "120"
+  },
+  {
+    "id": "1762354258398",
+    "productionStatus": "รอเริ่มผลิต",
+    "paymentStatus": "ยังไม่ได้ชำระเงิน",
+    "paymentProof": null,
+    "customerId": "1762354197863",
+    "customerName": "nigga111",
+    "items": [
+      {
+        "productId": "1762101863413",
+        "productName": "ปลา",
+        "size": "",
+        "price": 10,
+        "quantity": 6
+      }
+    ],
+    "subtotal": 60,
+    "vat": 4.2,
+    "totalWithVat": 64.2,
+    "depositAmount": 19.26,
+    "deliveryDate": "2025-11-13",
+    "deliveryAddress": "1412"
   }
 ]

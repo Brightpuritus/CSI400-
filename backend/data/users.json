@@ -1,6 +1,46 @@
 [
-  { "id": 1, "email": "customer@test.com", "password": "123456", "name": "ลูกค้าทดสอบ", "role": "customer" },
-  { "id": 2, "email": "employee@test.com", "password": "123456", "name": "พนักงานทดสอบ", "role": "employee" },
-  { "id": 3, "email": "manager@test.com", "password": "123456", "name": "ผู้จัดการทดสอบ", "role": "manager" },
-  { "id": 4, "email": "admin@test.com", "password": "123456", "name": "ผู้ดูแลระบบ", "role": "admin" }
+  {
+    "id": 1,
+    "email": "customer@test.com",
+    "password": "123456",
+    "name": "ลูกค้าทดสอบ",
+    "role": "customer"
+  },
+  {
+    "id": 2,
+    "email": "employee@test.com",
+    "password": "123456",
+    "name": "พนักงานทดสอบ",
+    "role": "employee"
+  },
+  {
+    "id": 3,
+    "email": "manager@test.com",
+    "password": "123456",
+    "name": "ผู้จัดการทดสอบ",
+    "role": "manager"
+  },
+  {
+    "id": 4,
+    "email": "admin@test.com",
+    "password": "123456",
+    "name": "ผู้ดูแลระบบ",
+    "role": "admin"
+  },
+  {
+    "id": "1762354126432",
+    "email": "halo111@gmail.com",
+    "password": "halo111",
+    "name": "halo111",
+    "role": "customer",
+    "createdAt": "2025-11-05T14:48:46.432Z"
+  },
+  {
+    "id": "1762354197863",
+    "email": "nigga111@gmail.com",
+    "password": "nigga111",
+    "name": "nigga111",
+    "role": "customer",
+    "createdAt": "2025-11-05T14:49:57.863Z"
+  }
 ]
