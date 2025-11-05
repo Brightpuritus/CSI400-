@@ -8,6 +8,7 @@ export function DataStoreProvider({ children }) {
   const [products, setProducts] = useState([])
   const [orders, setOrders] = useState([])
   const [loading, setLoading] = useState(false);
+  const [users, setUsers] = useState([]); // เพิ่ม state สำหรับ users
 
   // ดึงข้อมูลสินค้าและคำสั่งซื้อจาก Backend
   useEffect(() => {
@@ -197,6 +198,49 @@ export function DataStoreProvider({ children }) {
     )
   }
 
+  async function updateUserRole(email, newRole) {
+    try {
+      const res = await fetch("http://localhost:5000/api/users/update-role", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, role: newRole }),
+      });
+  
+      if (!res.ok) {
+        throw new Error("Failed to update user role");
+      }
+  
+      const updatedUser = await res.json();
+  
+      // อัปเดต users ใน Frontend
+      setUsers((prevUsers) =>
+        prevUsers.map((user) =>
+          user.email === updatedUser.email ? updatedUser : user
+        )
+      );
+    } catch (err) {
+      console.error("Error updating user role:", err);
+    }
+  }
+
+
+  async function deleteUser(email) {
+    try {
+      const res = await fetch(`http://localhost:5000/api/users/delete/${email}`, {
+        method: "DELETE",
+      });
+
+      if (!res.ok) {
+        throw new Error("Failed to delete user");
+      }
+
+      // อัปเดต users ใน Frontend
+      setUsers((prevUsers) => prevUsers.filter((user) => user.email !== email));
+    } catch (err) {
+      console.error("Error deleting user:", err);
+    }
+  }
+
   return (
     <DataStoreContext.Provider
       value={{
@@ -211,6 +255,10 @@ export function DataStoreProvider({ children }) {
         updateStock, // ตรวจสอบว่าถูกส่งออกใน Provider
         loadProducts,
         decreaseStock,
+        updateUserRole,
+        deleteUser,
+        users,
+        setUsers
       }}
     >
       {children}
