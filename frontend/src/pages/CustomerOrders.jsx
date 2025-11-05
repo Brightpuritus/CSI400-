@@ -1,19 +1,22 @@
-"use client"
+"use client";
 
-import { Link } from "react-router-dom"
-import { useAuth } from "../context/AuthContext"
-import { useDataStore } from "../context/DataStore"
-import { Plus, Package, Calendar, DollarSign } from "lucide-react"
-import "./CustomerOrders.css"
-import { useState } from "react"
+import { Link } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
+import { useDataStore } from "../context/DataStore";
+import { Plus, Package, Calendar, DollarSign } from "lucide-react";
+import "./CustomerOrders.css";
+import { useState } from "react";
 
 function CustomerOrders() {
-  const { user } = useAuth()
-  const { orders, updatePaymentStatus } = useDataStore()
-  const [selectedOrder, setSelectedOrder] = useState(null)
-  const [paymentProof, setPaymentProof] = useState(null)
+  const { user } = useAuth();
+  const { orders, updatePaymentStatus } = useDataStore();
+  const [selectedOrder, setSelectedOrder] = useState(null);
+  const [paymentProof, setPaymentProof] = useState(null);
 
-  const userOrders = user.role === "admin" ? orders : orders.filter((order) => order.customerId === user.id)
+  const userOrders =
+    user.role === "admin"
+      ? orders
+      : orders.filter((order) => order.customerId === user.id);
 
   const getStatusColor = (status) => {
     const colors = {
@@ -22,17 +25,16 @@ function CustomerOrders() {
       พร้อมจัดส่ง: "status-ready",
       จัดส่งแล้ว: "status-delivered",
       เสร็จสิ้น: "status-completed",
-    }
-    return colors[status] || "status-pending"
-  }
+    };
+    return colors[status] || "status-pending";
+  };
 
-  const handlePayment = (order) => {
-    const proof = paymentProof ? URL.createObjectURL(paymentProof) : null
-
-    updatePaymentStatus(order.id, order.paymentStatus, proof)
-    setSelectedOrder(null)
-    setPaymentProof(null)
-  }
+  const handlePayment = (order, targetStatus) => {
+    const proof = paymentProof ? URL.createObjectURL(paymentProof) : null;
+    updatePaymentStatus(order.id, targetStatus, proof);
+    setSelectedOrder(null);
+    setPaymentProof(null);
+  };
 
   return (
     <div className="page-container">
@@ -63,14 +65,20 @@ function CustomerOrders() {
               <div className="order-header">
                 <div>
                   <h3 className="order-id">คำสั่งซื้อ #{order.id}</h3>
-                  <span className={`status-badge ${getStatusColor(order.status)}`}>{order.productionStatus}</span>
+                  <span
+                    className={`status-badge ${getStatusColor(order.status)}`}
+                  >
+                    {order.productionStatus}
+                  </span>
                 </div>
               </div>
 
               <div className="order-details">
                 <div className="order-detail-item">
                   <Calendar size={16} />
-                  <span>{new Date(order.orderDate).toLocaleDateString("th-TH")}</span>
+                  <span>
+                    {new Date(order.orderDate).toLocaleDateString("th-TH")}
+                  </span>
                 </div>
                 <div className="order-detail-item">
                   <Package size={16} />
@@ -82,11 +90,63 @@ function CustomerOrders() {
                 </div>
                 <div className="order-detail-item">
                   <DollarSign size={16} />
-                  <span>มัดจำ 30%: ฿{(order.depositAmount ?? order.totalWithVat * 0.3).toLocaleString()}</span>
+                  <span>
+                    มัดจำ 30%: ฿
+                    {(
+                      order.depositAmount ?? order.totalWithVat * 0.3
+                    ).toLocaleString()}
+                  </span>
                 </div>
-
               </div>
-              
+
+              {/* แสดงยอดคงเหลือที่ต้องชำระ */}
+              {(() => {
+                const total = order.totalWithVat || 0;
+                const deposit = order.depositAmount ?? total * 0.3;
+                const remaining = Math.max(0, total - deposit);
+
+                if (order.paymentStatus === "ชำระมัดจำแล้ว") {
+                  return (
+                    <div
+                      className="payment-summary"
+                      style={{
+                        marginTop: 10,
+                        padding: "10px 12px",
+                        border: "1px solid #eee",
+                        borderRadius: 8,
+                      }}
+                    >
+                      <div
+                        style={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                        }}
+                      >
+                        <span>ยอดคงเหลือที่ต้องชำระ</span>
+                        <strong>฿{remaining.toLocaleString()}</strong>
+                      </div>
+
+                      {order.productionStatus === "พร้อมจัดส่ง" && (
+                        <div
+                          style={{
+                            marginTop: 8,
+                            padding: "6px 10px",
+                            background: "#fff4e5",
+                            border: "1px solid #ffd6a5",
+                            borderRadius: 6,
+                            color: "#8a5a00",
+                          }}
+                        >
+                          ออเดอร์ของคุณพร้อมจัดส่งแล้ว
+                          กรุณาชำระยอดคงเหลือเพื่อดำเนินการจัดส่ง
+                        </div>
+                      )}
+                    </div>
+                  );
+                }
+                return null;
+              })()}
+
               <div className="order-items">
                 {order.items.map((item, idx) => (
                   <div key={idx} className="order-item">
@@ -113,11 +173,39 @@ function CustomerOrders() {
 
               <div className="payment-actions">
                 {order.paymentStatus === "ยังไม่ได้ชำระเงิน" && (
-                  <>
-                    <button onClick={() => setSelectedOrder(order)}>อัปโหลดหลักฐานการโอนเงิน</button>
-                  </>
+                  <button
+                    onClick={() =>
+                      setSelectedOrder({
+                        ...order,
+                        targetStatus: "ชำระมัดจำแล้ว",
+                      })
+                    }
+                  >
+                    อัปโหลดหลักฐานการโอนเงิน (มัดจำ 30%)
+                  </button>
                 )}
-                {order.paymentProof && <a href={order.paymentProof} target="_blank">ดูหลักฐานการโอน</a>}
+
+                {order.paymentStatus === "ชำระมัดจำแล้ว" &&
+                  order.productionStatus === "พร้อมจัดส่ง" && (
+                    <>
+                      <button
+                        onClick={() =>
+                          setSelectedOrder({
+                            ...order,
+                            targetStatus: "ชำระทั้งหมดแล้ว",
+                          })
+                        }
+                      >
+                        อัปโหลดหลักฐานชำระ “ยอดที่เหลือ”
+                      </button>
+                    </>
+                  )}
+
+                {order.paymentProof && (
+                  <a href={order.paymentProof} target="_blank" rel="noreferrer">
+                    ดูหลักฐานการโอน
+                  </a>
+                )}
               </div>
             </div>
           ))}
@@ -127,12 +215,24 @@ function CustomerOrders() {
       {selectedOrder && (
         <div className="modal">
           <h3>อัปโหลดหลักฐานการโอนเงิน</h3>
-          <input type="file" onChange={(e) => setPaymentProof(e.target.files[0])} />
-          <button onClick={() => handlePayment(selectedOrder)}>อัปโหลด</button>
+          <input
+            type="file"
+            onChange={(e) => setPaymentProof(e.target.files[0])}
+          />
+          <button
+            onClick={() =>
+              handlePayment(
+                selectedOrder,
+                selectedOrder.targetStatus || selectedOrder.paymentStatus
+              )
+            }
+          >
+            อัปโหลด
+          </button>
         </div>
       )}
     </div>
-  )
+  );
 }
 
-export default CustomerOrders
+export default CustomerOrders;

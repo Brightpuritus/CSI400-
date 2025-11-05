@@ -1,19 +1,19 @@
-"use client"
+"use client";
 
-import { useDataStore } from "../context/DataStore"
-import "./VerifyPayments.css"
+import { useDataStore } from "../context/DataStore";
+import "./VerifyPayments.css";
 
 function VerifyPayments() {
-  const { orders, confirmPayment } = useDataStore()
+  const { orders, confirmPayment } = useDataStore();
 
   // ✅ รวมออเดอร์ที่ยังไม่ได้จ่ายหรือจ่ายมัดจำแล้ว
   const pendingOrders = orders.filter((order) =>
     ["ยังไม่ได้ชำระเงิน", "ชำระมัดจำแล้ว"].includes(order.paymentStatus)
-  )
+  );
 
   const handleConfirm = (orderId, paymentStatus) => {
-    confirmPayment(orderId, paymentStatus)
-  }
+    confirmPayment(orderId, paymentStatus);
+  };
 
   return (
     <div className="page-container">
@@ -30,10 +30,26 @@ function VerifyPayments() {
 
               {/* ✅ แสดงยอดรวมและยอดมัดจำ */}
               <p>ยอดรวมทั้งหมด: ฿{order.totalWithVat.toLocaleString()}</p>
-              <p>ยอดมัดจำ 30%: ฿{(order.depositAmount ?? order.totalWithVat * 0.3).toLocaleString()}</p>
+              <p>
+                ยอดมัดจำ 30%: ฿
+                {(
+                  order.depositAmount ?? order.totalWithVat * 0.3
+                ).toLocaleString()}
+              </p>
+              <p>
+                ยอดคงเหลือ: ฿
+                {(
+                  (order.totalWithVat || 0) -
+                  (order.depositAmount ?? (order.totalWithVat || 0) * 0.3)
+                ).toLocaleString()}
+              </p>
 
               {order.paymentProof && (
-                <a href={order.paymentProof} target="_blank" rel="noopener noreferrer">
+                <a
+                  href={order.paymentProof}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
                   ดูหลักฐานการโอน
                 </a>
               )}
@@ -62,7 +78,7 @@ function VerifyPayments() {
         </div>
       )}
     </div>
-  )
+  );
 }
 
-export default VerifyPayments
+export default VerifyPayments;

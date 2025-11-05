@@ -1,39 +1,38 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { useDataStore } from "../context/DataStore"
-import { Truck, Package, CheckCircle, X } from "lucide-react"
-import "./Delivery.css"
+import { useState } from "react";
+import { useDataStore } from "../context/DataStore";
+import { Truck, Package, CheckCircle, X } from "lucide-react";
+import "./Delivery.css";
 
 function Delivery() {
-  const { orders, updateDeliveryInfo } = useDataStore()
-  const [selectedOrder, setSelectedOrder] = useState(null)
-  const [trackingNumber, setTrackingNumber] = useState("")
-  const [deliveryStatus, setDeliveryStatus] = useState("กำลังจัดส่ง")
+  const { orders, updateDeliveryInfo /*, updateItemDelivery*/ } = useDataStore(); // ถ้าจะใช้แยกส่งเป็นชิ้น ค่อยเปิด updateItemDelivery
+  const [selectedOrder, setSelectedOrder] = useState(null);
+  const [trackingNumber, setTrackingNumber] = useState("");
+  const [deliveryStatus, setDeliveryStatus] = useState("กำลังจัดส่ง");
 
   const deliveryOrders = {
     ready: orders.filter((o) => o.productionStatus === "พร้อมจัดส่ง" && !o.deliveryStatus),
     shipping: orders.filter((o) => o.deliveryStatus === "กำลังจัดส่ง"),
     delivered: orders.filter((o) => o.deliveryStatus === "จัดส่งสำเร็จ"),
-  }
+  };
 
   const handleUpdateDelivery = () => {
     if (!trackingNumber) {
-      alert("กรุณากรอกเลขพัสดุ")
-      return
+      alert("กรุณากรอกเลขพัสดุ");
+      return;
     }
-
-    updateDeliveryInfo(selectedOrder.id, trackingNumber, deliveryStatus)
-    setSelectedOrder(null)
-    setTrackingNumber("")
-    setDeliveryStatus("กำลังจัดส่ง")
-  }
+    updateDeliveryInfo(selectedOrder.id, trackingNumber, deliveryStatus);
+    setSelectedOrder(null);
+    setTrackingNumber("");
+    setDeliveryStatus("กำลังจัดส่ง");
+  };
 
   const openDialog = (order) => {
-    setSelectedOrder(order)
-    setTrackingNumber(order.trackingNumber || "")
-    setDeliveryStatus(order.deliveryStatus || "กำลังจัดส่ง")
-  }
+    setSelectedOrder(order);
+    setTrackingNumber(order.trackingNumber || "");
+    setDeliveryStatus(order.deliveryStatus || "กำลังจัดส่ง");
+  };
 
   return (
     <div className="page-container">
@@ -45,48 +44,81 @@ function Delivery() {
       </div>
 
       <div className="delivery-sections">
+        {/* พร้อมจัดส่ง */}
         <div className="delivery-section">
           <h2 className="section-title">
             <Package size={20} />
             พร้อมจัดส่ง ({deliveryOrders.ready.length})
           </h2>
+
           {deliveryOrders.ready.length === 0 ? (
             <div className="empty-state-small">ไม่มีคำสั่งซื้อที่พร้อมจัดส่ง</div>
           ) : (
             <div className="delivery-cards">
-              {deliveryOrders.ready.map((order) => (
-                <div key={order.id} className="delivery-card">
-                  <div className="delivery-card-header">
-                    <span className="order-id">คำสั่งซื้อ #{order.id}</span>
-                    <span className="customer-name">{order.customerName}</span>
-                  </div>
+              {deliveryOrders.ready.map((order) => {
+                const deposit = order.depositAmount ?? (order.totalWithVat || 0) * 0.3;
+                const remaining = Math.max(0, (order.totalWithVat || 0) - deposit);
+                const needFullPayment = order.paymentStatus === "ชำระมัดจำแล้ว";
 
-                  <div className="delivery-card-items">
-                    {order.items.map((item, idx) => (
-                      <div key={idx} className="item-row">
-                        {item.productName} x{item.quantity}
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* แสดงที่อยู่จัดส่ง ถ้ามี */}
-                  {order.deliveryAddress && (
-                    <div className="tracking-info" style={{ whiteSpace: "pre-line" }}>
-                      <strong>ที่อยู่จัดส่ง:</strong>
-                      <div style={{ marginTop: 6 }}>{order.deliveryAddress}</div>
+                return (
+                  <div key={order.id} className="delivery-card">
+                    <div className="delivery-card-header">
+                      <span className="order-id">คำสั่งซื้อ #{order.id}</span>
+                      <span className="customer-name">{order.customerName}</span>
                     </div>
-                  )}
 
-                  <button onClick={() => openDialog(order)} className="btn btn-primary btn-sm btn-full">
-                    <Truck size={16} />
-                    เริ่มจัดส่ง
-                  </button>
-                </div>
-              ))}
+                    <div className="delivery-card-items">
+                      {order.items.map((item, idx) => (
+                        <div key={idx} className="item-row">
+                          {item.productName} x{item.quantity}
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* แสดงที่อยู่จัดส่ง ถ้ามี */}
+                    {order.deliveryAddress && (
+                      <div className="tracking-info" style={{ whiteSpace: "pre-line" }}>
+                        <strong>ที่อยู่จัดส่ง:</strong>
+                        <div style={{ marginTop: 6 }}>{order.deliveryAddress}</div>
+                      </div>
+                    )}
+
+                    {/* แจ้งเตือนให้ชำระเต็มจำนวนก่อนจัดส่ง ถ้ายังจ่ายแค่มัดจำ */}
+                    {needFullPayment && (
+                      <div
+                        className="alert-warning"
+                        style={{
+                          margin: "8px 0",
+                          padding: "8px 12px",
+                          background: "#fff4e5",
+                          border: "1px solid #ffd6a5",
+                          borderRadius: 8,
+                          color: "#8a5a00",
+                        }}
+                      >
+                        ลูกค้าชำระมัดจำแล้ว เหลือยอดชำระ ฿{remaining.toLocaleString()}  
+                        กรุณาชำระเต็มจำนวนก่อนดำเนินการจัดส่ง
+                      </div>
+                    )}
+
+                    <button
+                      onClick={() => openDialog(order)}
+                      className="btn btn-primary btn-sm btn-full"
+                      disabled={needFullPayment}
+                      title={needFullPayment ? "ต้องชำระเต็มจำนวนก่อนเริ่มจัดส่ง" : "เริ่มจัดส่ง"}
+                      style={needFullPayment ? { opacity: 0.5, cursor: "not-allowed" } : {}}
+                    >
+                      <Truck size={16} />
+                      เริ่มจัดส่ง
+                    </button>
+                  </div>
+                );
+              })}
             </div>
           )}
         </div>
 
+        {/* กำลังจัดส่ง */}
         <div className="delivery-section">
           <h2 className="section-title">
             <Truck size={20} />
@@ -114,6 +146,7 @@ function Delivery() {
           )}
         </div>
 
+        {/* จัดส่งสำเร็จ */}
         <div className="delivery-section">
           <h2 className="section-title">
             <CheckCircle size={20} />
@@ -187,7 +220,7 @@ function Delivery() {
         </div>
       )}
     </div>
-  )
+  );
 }
 
-export default Delivery
+export default Delivery;
