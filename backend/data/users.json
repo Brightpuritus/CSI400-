@@ -23,7 +23,7 @@
   {
     "id": 4,
     "email": "admin@test.com",
-    "password": "123456",
+    "password": "$2b$10$v3LP0oSJlRuJ1.tccjT59O20E8RWX1vJ/kinMOr3QmxKyXT/EjBhS",
     "name": "ผู้ดูแลระบบ",
     "role": "admin"
   },
@@ -42,5 +42,21 @@
     "name": "nigga111",
     "role": "customer",
     "createdAt": "2025-11-05T14:49:57.863Z"
+  },
+  {
+    "id": "1762354997756",
+    "email": "nigga123@gmail.com",
+    "password": "nigga123",
+    "name": "nigga123",
+    "role": "customer",
+    "createdAt": "2025-11-05T15:03:17.756Z"
+  },
+  {
+    "id": "1762355760730",
+    "email": "halonigga123@gmail.com",
+    "password": "$2b$10$bhXqfX9nQTx1DlQ6MOpYbewKGSpAtN3UoRiev6JKvQThxgpsRciYC",
+    "name": "halonigga123",
+    "role": "customer",
+    "createdAt": "2025-11-05T15:16:00.730Z"
   }
 ]
