@@ -16,7 +16,11 @@ const getProducts = (req, res) => {
 function updateStock(req, res) {
   const { productId, quantity } = req.body;
 
-  console.log("Received productId:", productId, "quantity:", quantity);
+  console.log("Request body:", req.body);
+
+  if (!productId || quantity == null) {
+    return res.status(400).json({ error: "Invalid request body" });
+  }
 
   const products = JSON.parse(fs.readFileSync(productsPath, "utf-8"));
   const productIndex = products.findIndex((p) => p.id === productId);
@@ -26,7 +30,7 @@ function updateStock(req, res) {
     return res.status(404).json({ error: "Product not found" });
   }
 
-  products[productIndex].stock += quantity;
+  products[productIndex].stock += quantity; // ลด stock ด้วยค่าลบ
 
   fs.writeFileSync(productsPath, JSON.stringify(products, null, 2));
   res.json(products[productIndex]);

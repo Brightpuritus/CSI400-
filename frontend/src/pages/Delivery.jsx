@@ -6,7 +6,7 @@ import { Truck, Package, CheckCircle, X } from "lucide-react";
 import "./Delivery.css";
 
 function Delivery() {
-  const { orders, updateDeliveryInfo /*, updateItemDelivery*/ } = useDataStore(); // ถ้าจะใช้แยกส่งเป็นชิ้น ค่อยเปิด updateItemDelivery
+  const { orders, updateDeliveryInfo, decreaseStock } = useDataStore(); // ถ้าจะใช้แยกส่งเป็นชิ้น ค่อยเปิด updateItemDelivery
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [trackingNumber, setTrackingNumber] = useState("");
   const [deliveryStatus, setDeliveryStatus] = useState("กำลังจัดส่ง");
@@ -22,7 +22,17 @@ function Delivery() {
       alert("กรุณากรอกเลขพัสดุ");
       return;
     }
+  
+    // อัปเดตสถานะการจัดส่ง
     updateDeliveryInfo(selectedOrder.id, trackingNumber, deliveryStatus);
+  
+    // ลดจำนวนสินค้าใน stock เมื่อสถานะเป็น "กำลังจัดส่ง"
+    if (deliveryStatus === "กำลังจัดส่ง") {
+      decreaseStock(selectedOrder.items); // เรียก decreaseStock พร้อมส่งรายการสินค้าใน order
+    }
+  
+    console.log("Selected order items:", selectedOrder.items);
+  
     setSelectedOrder(null);
     setTrackingNumber("");
     setDeliveryStatus("กำลังจัดส่ง");

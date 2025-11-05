@@ -124,6 +124,34 @@ export function DataStoreProvider({ children }) {
     }
   }
 
+  async function decreaseStock(orderItems) {
+    try {
+      for (const item of orderItems) {
+        console.log(`Decreasing stock for product: ${item.productId}, quantity: ${item.quantity}`);
+        const res = await fetch("http://localhost:5000/api/products/update-stock", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ productId: item.productId, quantity: -item.quantity }), // ใช้ค่าลบเพื่อลด stock
+        });
+
+        if (!res.ok) {
+          throw new Error(`Failed to decrease stock for product ${item.productId}`);
+        }
+
+        const updatedProduct = await res.json();
+
+        // อัปเดต stock ใน Frontend
+        setProducts((prevProducts) =>
+          prevProducts.map((product) =>
+            product.id === updatedProduct.id ? updatedProduct : product
+          )
+        );
+      }
+    } catch (err) {
+      console.error("Error decreasing stock:", err);
+    }
+  }
+
   const updateDeliveryInfo = async (orderId, trackingNumber, deliveryStatus) => {
     try {
       const response = await fetch("http://localhost:5000/api/delivery", {
@@ -182,6 +210,7 @@ export function DataStoreProvider({ children }) {
         confirmPayment,
         updateStock, // ตรวจสอบว่าถูกส่งออกใน Provider
         loadProducts,
+        decreaseStock,
       }}
     >
       {children}
