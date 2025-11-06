@@ -6,7 +6,7 @@ import { useDataStore } from "../context/DataStore";
 
 export default function Stock() {
   const { products, loadProducts, createProduct, updateProduct, deleteProduct } = useDataStore();
-  const [form, setForm] = useState({ imageUrl: "", name: "", price: "", stock: "" });
+  const [form, setForm] = useState({ imageUrl: "", name: "", price: "", stock: "", packSize: "" });
   const [editingProduct, setEditingProduct] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
@@ -123,6 +123,8 @@ export default function Stock() {
               <input name="price" type="number" value={form.price} onChange={(e) => setForm({ ...form, price: e.target.value })} required />
               <label>จำนวนในสต็อก</label>
               <input name="stock" type="number" value={form.stock} onChange={(e) => setForm({ ...form, stock: e.target.value })} required />
+              <label>จำนวนต่อ 1 ลัง (กระป๋อง)</label>
+              <input name="packSize" type="number" value={form.packSize} onChange={(e) => setForm({ ...form, packSize: e.target.value })} placeholder="เช่น 24" />
               <label>URL รูปภาพ</label>
               <input name="imageUrl" value={form.imageUrl} onChange={(e) => setForm({ ...form, imageUrl: e.target.value })} />
               <button type="submit" disabled={isSubmitting}>ยืนยัน</button>
@@ -142,8 +144,8 @@ export default function Stock() {
               <label>ราคา</label>
               <input name="price" type="number" value={form.price} onChange={(e) => setForm({ ...form, price: e.target.value })} required />
               <label>จำนวนในสต็อก</label>
-              <input name="stock" type="number" value={form.stock} onChange={(e) => setForm({ ...form, stock: e.target.value })} required />
-              <label>URL รูปภาพ</label>
+              <label>จำนวนต่อ 1 ลัง (กระป๋อง)</label>
+              <input name="packSize" type="number" value={form.packSize} onChange={(e) => setForm({ ...form, packSize: e.target.value })} placeholder="เช่น 24" />
               <input name="imageUrl" value={form.imageUrl} onChange={(e) => setForm({ ...form, imageUrl: e.target.value })} />
               <button type="submit" disabled={isSubmitting}>ยืนยัน</button>
             </form>

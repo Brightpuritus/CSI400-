@@ -81,6 +81,12 @@ function CustomerOrders() {
                   </span>
                 </div>
                 <div className="order-detail-item">
+                  <span>เบอร์ลูกค้า: {order.customerPhone || "-"}</span>
+                </div>
+                <div className="order-detail-item">
+                  <span>เบอร์บริษัท: {order.companyPhone || "02-000-0000"}</span>
+                </div>
+                <div className="order-detail-item">
                   <Package size={16} />
                   <span>{order.items.length} รายการ</span>
                 </div>

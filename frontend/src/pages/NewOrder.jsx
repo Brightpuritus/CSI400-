@@ -1,101 +1,142 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { useNavigate } from "react-router-dom"
-import { useAuth } from "../context/AuthContext"
-import { useDataStore } from "../context/DataStore"
-import { ShoppingCart, Plus, Minus, Trash2, ArrowLeft } from "lucide-react"
-import "./NewOrder.css"
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
+import { useDataStore } from "../context/DataStore";
+import { ShoppingCart, Plus, Minus, Trash2, ArrowLeft } from "lucide-react";
+import "./NewOrder.css";
+
+const CASE_SIZE = 24; // 1 ลัง มีกี่กระป๋อง
+const MIN_CASES = 2; // ขั้นต่ำเป็นจำนวน "ลัง"
+const MIN_TOTAL_BAHT = 0; // หรือขั้นต่ำเป็นยอดเงิน (0 = ไม่ใช้)
 
 function NewOrder() {
-  const { user } = useAuth()
-  const { addOrder } = useDataStore() // เก็บ addOrder ไว้เหมือนเดิม
-  const navigate = useNavigate()
-  const [products, setProducts] = useState([])
-  const [loadingProducts, setLoadingProducts] = useState(true)
-  const [cart, setCart] = useState([])
-  const [deliveryDate, setDeliveryDate] = useState("")
-  const [deliveryAddress, setDeliveryAddress] = useState("")
+  const { user } = useAuth();
+  const { addOrder } = useDataStore(); // เก็บ addOrder ไว้เหมือนเดิม
+  const navigate = useNavigate();
+  const [products, setProducts] = useState([]);
+  const [loadingProducts, setLoadingProducts] = useState(true);
+  const [cart, setCart] = useState([]);
+  const [deliveryDate, setDeliveryDate] = useState("");
+  const [deliveryAddress, setDeliveryAddress] = useState("");
+  const [customerPhone, setCustomerPhone] = useState("");
+  const [companyPhone, setCompanyPhone] = useState("02-000-0000"); // เปลี่ยนได้
 
   useEffect(() => {
-    let mounted = true
+    let mounted = true;
     async function loadProducts() {
-      setLoadingProducts(true)
+      setLoadingProducts(true);
       // พยายามเรียกแบบ relative ก่อน แล้ว fallback ไปที่พอร์ตที่เป็นไปได้
-      const urls = ["/api/products", "http://localhost:5000/api/products", "http://localhost:4000/api/products"]
+      const urls = [
+        "/api/products",
+        "http://localhost:5000/api/products",
+        "http://localhost:4000/api/products",
+      ];
       for (const url of urls) {
         try {
-          const res = await fetch(url)
-          if (!res.ok) continue
-          const data = await res.json()
+          const res = await fetch(url);
+          if (!res.ok) continue;
+          const data = await res.json();
           if (mounted) {
-            setProducts(Array.isArray(data) ? data : [])
-            setLoadingProducts(false)
+            setProducts(Array.isArray(data) ? data : []);
+            setLoadingProducts(false);
           }
-          return
+          return;
         } catch (e) {
           // try next
         }
       }
       if (mounted) {
-        setProducts([])
-        setLoadingProducts(false)
+        setProducts([]);
+        setLoadingProducts(false);
       }
     }
-    loadProducts()
-    return () => { mounted = false }
-  }, [])
+    loadProducts();
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   const addToCart = (product) => {
-    const existingItem = cart.find((item) => item.productId === product.id)
+    const existingItem = cart.find((item) => item.productId === product.id);
     if (existingItem) {
-      setCart(cart.map((item) => (item.productId === product.id ? { ...item, quantity: item.quantity + 1 } : item)))
+      setCart(
+        cart.map((item) =>
+          item.productId === product.id
+            ? { ...item, quantity: item.quantity + 1 }
+            : item
+        )
+      );
     } else {
       setCart([
         ...cart,
         {
           productId: product.id,
           productName: product.name,
-          size: product.size || "",
-          price: product.price || 0,
-          quantity: 1,
+          // ใช้หน่วย "ลัง" เสมอ และคิดราคา/ลัง
+          unit: "ลัง",
+          packSize: product.packSize || CASE_SIZE, // จำนวนกระป๋องต่อ 1 ลัง (ถ้ามีในสินค้า)
+          pricePerCan: product.price || 0, // เก็บราคา/กระป๋องไว้ด้วย
+          price: (product.price || 0) * (product.packSize || CASE_SIZE), // ราคา/ลัง
+          quantity: 1, // จำนวน "ลัง"
         },
-      ])
+      ]);
     }
-  }
+  };
 
   const updateQuantity = (productId, change) => {
     setCart(
       cart
         .map((item) =>
-          item.productId === productId ? { ...item, quantity: Math.max(1, item.quantity + change) } : item,
+          item.productId === productId
+            ? { ...item, quantity: Math.max(1, item.quantity + change) }
+            : item
         )
-        .filter((item) => item.quantity > 0),
-    )
-  }
+        .filter((item) => item.quantity > 0)
+    );
+  };
 
   const removeFromCart = (productId) => {
-    setCart(cart.filter((item) => item.productId !== productId))
-  }
+    setCart(cart.filter((item) => item.productId !== productId));
+  };
 
-  const subtotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0)
-  const vat = subtotal * 0.07
-  const total = subtotal + vat
+  const subtotal = cart.reduce(
+    (sum, item) => sum + item.price * item.quantity,
+    0
+  ); // ราคาเป็นต่อ "ลัง"
+  const vat = subtotal * 0.07;
+  const total = subtotal + vat;
   const deposit = total * 0.3; // มัดจำ 30%
 
   const handleSubmit = (e) => {
-    e.preventDefault()
+    e.preventDefault();
     if (cart.length === 0) {
-      alert("กรุณาเพิ่มสินค้าลงตะกร้า")
-      return
+      alert("กรุณาเพิ่มสินค้าลงตะกร้า");
+      return;
+    }
+    // ตรวจขั้นต่ำ (แบบจำนวนลัง)
+    const totalCases = cart.reduce((s, i) => s + i.quantity, 0);
+    if (MIN_CASES > 0 && totalCases < MIN_CASES) {
+      alert(`ขั้นต่ำ ${MIN_CASES} ลัง (คุณเลือก ${totalCases} ลัง)`);
+      return;
+    }
+    // ตรวจขั้นต่ำ (แบบยอดเงิน)
+    if (MIN_TOTAL_BAHT > 0 && total < MIN_TOTAL_BAHT) {
+      alert(`ยอดสั่งซื้อขั้นต่ำ ฿${MIN_TOTAL_BAHT.toLocaleString()}`);
+      return;
     }
     if (!deliveryDate) {
-      alert("กรุณาเลือกวันที่ต้องการรับสินค้า")
-      return
+      alert("กรุณาเลือกวันที่ต้องการรับสินค้า");
+      return;
     }
     if (!deliveryAddress.trim()) {
-      alert("กรุณากรอกที่อยู่จัดส่ง")
-      return
+      alert("กรุณากรอกที่อยู่จัดส่ง");
+      return;
+    }
+    if (!customerPhone.trim()) {
+      alert("กรุณากรอกเบอร์โทรลูกค้า");
+      return;
     }
 
     addOrder({
@@ -108,17 +149,22 @@ function NewOrder() {
       depositAmount: deposit,
       deliveryDate,
       deliveryAddress,
+      customerPhone,
+      companyPhone,
       paymentStatus: "ยังไม่ได้ชำระเงิน", // เพิ่มสถานะเริ่มต้น
       productionStatus: "รอเริ่มผลิต",
-    })
+    });
 
-    alert("สั่งซื้อสำเร็จ!")
-    navigate("/customer/orders")
-  }
+    alert("สั่งซื้อสำเร็จ!");
+    navigate("/customer/orders");
+  };
 
   return (
     <div className="page-container">
-      <button onClick={() => navigate("/customer/orders")} className="back-button">
+      <button
+        onClick={() => navigate("/customer/orders")}
+        className="back-button"
+      >
         <ArrowLeft size={20} />
         กลับ
       </button>
@@ -140,16 +186,23 @@ function NewOrder() {
               products.map((product) => (
                 <div key={product.id} className="product-card">
                   <img
-                    src={product.imageUrl || product.image || "/placeholder.svg"}
+                    src={
+                      product.imageUrl || product.image || "/placeholder.svg"
+                    }
                     alt={product.name}
                     className="product-image"
                   />
                   <div className="product-info">
                     <h3 className="product-name">{product.name}</h3>
-                    <p className="product-size">{product.size}</p>
+                    <p className="product-size">
+                      1 ลัง = {product.packSize || CASE_SIZE} กระป๋อง
+                    </p>
                     <div className="product-footer">
                       <span className="product-price">฿{product.price}</span>
-                      <button onClick={() => addToCart(product)} className="btn btn-secondary btn-sm">
+                      <button
+                        onClick={() => addToCart(product)}
+                        className="btn btn-secondary btn-sm"
+                      >
                         <Plus size={16} />
                         เพิ่ม
                       </button>
@@ -180,19 +233,34 @@ function NewOrder() {
                       <div className="cart-item-info">
                         <div className="cart-item-name">{item.productName}</div>
                         <div className="cart-item-size">{item.size}</div>
-                        <div className="cart-item-price">฿{item.price}</div>
+                        <div className="cart-item-price">
+                          ฿{item.price} / ลัง
+                          <div style={{ fontSize: 12, opacity: 0.7 }}>
+                            (1 ลัง = {item.packSize || CASE_SIZE} กระป๋อง, ฿
+                            {item.pricePerCan}/กระป๋อง)
+                          </div>
+                        </div>
                       </div>
                       <div className="cart-item-actions">
                         <div className="quantity-controls">
-                          <button onClick={() => updateQuantity(item.productId, -1)} className="quantity-btn">
+                          <button
+                            onClick={() => updateQuantity(item.productId, -1)}
+                            className="quantity-btn"
+                          >
                             <Minus size={14} />
                           </button>
                           <span className="quantity">{item.quantity}</span>
-                          <button onClick={() => updateQuantity(item.productId, 1)} className="quantity-btn">
+                          <button
+                            onClick={() => updateQuantity(item.productId, 1)}
+                            className="quantity-btn"
+                          >
                             <Plus size={14} />
                           </button>
                         </div>
-                        <button onClick={() => removeFromCart(item.productId)} className="remove-btn">
+                        <button
+                          onClick={() => removeFromCart(item.productId)}
+                          className="remove-btn"
+                        >
                           <Trash2 size={16} />
                         </button>
                       </div>
@@ -216,6 +284,17 @@ function NewOrder() {
                 </div>
 
                 <form onSubmit={handleSubmit} className="order-form">
+                  <div className="form-group">
+                    <label className="form-label">เบอร์โทรลูกค้า</label>
+                    <input
+                      type="tel"
+                      value={customerPhone}
+                      onChange={(e) => setCustomerPhone(e.target.value)}
+                      className="form-input"
+                      placeholder="เช่น 08x-xxx-xxxx"
+                      required
+                    />
+                  </div>
                   <div className="form-group">
                     <label htmlFor="deliveryDate" className="form-label">
                       วันที่ต้องการรับสินค้า
@@ -246,7 +325,17 @@ function NewOrder() {
                     />
                   </div>
 
-                  <button type="submit" className="btn btn-primary btn-full">
+                  <div style={{ marginTop: 8, fontSize: 13 }}>
+                    * หน่วยการสั่งซื้อเป็น “ลัง” — 1 ลัง = {CASE_SIZE} กระป๋อง
+                  </div>
+                  <div style={{ marginTop: 4, fontSize: 13 }}>
+                    เบอร์ติดต่อบริษัท: {companyPhone}
+                  </div>
+                  <button
+                    type="submit"
+                    className="btn btn-primary btn-full"
+                    style={{ marginTop: 12 }}
+                  >
                     ยืนยันการสั่งซื้อ
                   </button>
                 </form>
@@ -256,7 +345,7 @@ function NewOrder() {
         </div>
       </div>
     </div>
-  )
+  );
 }
 
-export default NewOrder
+export default NewOrder;

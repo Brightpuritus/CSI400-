@@ -102,6 +102,12 @@ function Delivery() {
                         <div style={{ marginTop: 6 }}>{order.deliveryAddress}</div>
                       </div>
                     )}
+                    <div className="tracking-info">
+                  <strong>เบอร์ลูกค้า:</strong> {order.customerPhone || "-"}
+                </div>
+                <div className="tracking-info">
+                  <strong>เบอร์บริษัท:</strong> {order.companyPhone || "02-000-0000"}
+                </div>
 
                     {/* แจ้งเตือนให้ชำระเต็มจำนวนก่อนจัดส่ง ถ้ายังจ่ายแค่มัดจำ */}
                     {needFullPayment && (
