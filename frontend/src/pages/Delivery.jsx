@@ -17,25 +17,35 @@ function Delivery() {
     delivered: orders.filter((o) => o.deliveryStatus === "จัดส่งสำเร็จ"),
   };
 
-  const handleUpdateDelivery = () => {
+  const handleUpdateDelivery = async () => {
     if (!trackingNumber) {
       alert("กรุณากรอกเลขพัสดุ");
       return;
     }
-  
-    // อัปเดตสถานะการจัดส่ง
-    updateDeliveryInfo(selectedOrder.id, trackingNumber, deliveryStatus);
-  
-    // ลดจำนวนสินค้าใน stock เมื่อสถานะเป็น "กำลังจัดส่ง"
-    if (deliveryStatus === "กำลังจัดส่ง") {
-      decreaseStock(selectedOrder.items); // เรียก decreaseStock พร้อมส่งรายการสินค้าใน order
+
+    try {
+      // อัปเดตสถานะการจัดส่ง
+      updateDeliveryInfo(selectedOrder.id, trackingNumber, deliveryStatus);
+
+      // ลดจำนวนสินค้าใน stock เมื่อสถานะเป็น "กำลังจัดส่ง"
+      if (deliveryStatus === "กำลังจัดส่ง") {
+        const itemsToDecrease = selectedOrder.items.map((item) => ({
+          productId: item.productId,
+          quantity: -Math.abs(item.quantity), // เปลี่ยน quantity ให้เป็นค่าลบ
+        }));
+
+        console.log("Decreasing stock for items:", itemsToDecrease);
+
+        await decreaseStock(itemsToDecrease); // เรียก decreaseStock พร้อมส่งรายการสินค้า
+      }
+
+      setSelectedOrder(null);
+      setTrackingNumber("");
+      setDeliveryStatus("กำลังจัดส่ง");
+    } catch (err) {
+      console.error("Error updating delivery:", err);
+      alert("เกิดข้อผิดพลาดในการอัปเดตข้อมูลการจัดส่ง");
     }
-  
-    console.log("Selected order items:", selectedOrder.items);
-  
-    setSelectedOrder(null);
-    setTrackingNumber("");
-    setDeliveryStatus("กำลังจัดส่ง");
   };
 
   const openDialog = (order) => {

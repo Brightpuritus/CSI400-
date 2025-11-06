@@ -1,121 +1,68 @@
-"use client"
+"use client";
 
-import React, { useEffect, useState } from "react"
-import "./Stock.css"
+import React, { useEffect, useState } from "react";
+import "./Stock.css";
+import { useDataStore } from "../context/DataStore";
 
 export default function Stock() {
-  const [products, setProducts] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [showModal, setShowModal] = useState(false)
-  const [form, setForm] = useState({ imageUrl: "", name: "", price: "", stock: "" })
-  const [error, setError] = useState("")
-  const [isSubmitting, setIsSubmitting] = useState(false)
-
-  const [editingProduct, setEditingProduct] = useState(null) // product being edited
-  const [showEditModal, setShowEditModal] = useState(false)
+  const { products, loadProducts, createProduct, updateProduct, deleteProduct } = useDataStore();
+  const [form, setForm] = useState({ imageUrl: "", name: "", price: "", stock: "" });
+  const [editingProduct, setEditingProduct] = useState(null);
+  const [showModal, setShowModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [error, setError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
-    loadProducts()
-  }, [])
+    loadProducts(); // โหลดสินค้าทั้งหมดเมื่อหน้าโหลด
+  }, []);
 
-  async function loadProducts() {
-    setLoading(true);
+  const handleCreate = async (e) => {
+    e.preventDefault();
+    setError("");
     try {
-      const res = await fetch("http://localhost:5000/api/products");
-      const data = await res.json();
-      setProducts(Array.isArray(data) ? data : []);
+      setIsSubmitting(true);
+      await createProduct(form); // เรียกใช้ฟังก์ชันจาก DataStore
+      setShowModal(false);
+      setForm({ imageUrl: "", name: "", price: "", stock: "" });
     } catch (err) {
       console.error(err);
-      setProducts([]);
+      setError(err.message || "ข้อผิดพลาด");
     } finally {
-      setLoading(false);
+      setIsSubmitting(false);
     }
-  }
+  };
 
-  function onChange(e) {
-    setForm({ ...form, [e.target.name]: e.target.value })
-  }
-
-  async function handleCreate(e) {
-    e.preventDefault()
-    setError("")
-    if (!form.name.trim()) return setError("กรุณากรอกชื่อสินค้า")
+  const handleEditSubmit = async (e) => {
+    e.preventDefault();
+    setError("");
+    if (!editingProduct) return;
     try {
-      setIsSubmitting(true)
-      const body = {
-        imageUrl: form.imageUrl.trim(),
-        name: form.name.trim(),
-        price: Number(form.price) || 0,
-        stock: Number(form.stock) || 0,
-      }
-      const res = await fetch("http://localhost:5000/api/products", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-      })
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({}))
-        throw new Error(err.error || "ไม่สามารถเพิ่มสินค้าได้")
-      }
-      setShowModal(false)
-      setForm({ imageUrl: "", name: "", price: "", stock: "" })
-      // โหลดข้อมูลใหม่จาก products.json เพื่อให้ตารางอัพเดต
-      await loadProducts()
-      alert("เพิ่มสินค้าเรียบร้อย")
+      setIsSubmitting(true);
+      await updateProduct(editingProduct.id, form); // เรียกใช้ฟังก์ชันจาก DataStore
+      setShowEditModal(false);
+      setEditingProduct(null);
+      setForm({ imageUrl: "", name: "", price: "", stock: "" });
     } catch (err) {
-      console.error(err)
-      setError(err.message || "ข้อผิดพลาด")
+      console.error(err);
+      setError(err.message || "ข้อผิดพลาด");
     } finally {
-      setIsSubmitting(false)
+      setIsSubmitting(false);
     }
-  }
+  };
 
-  function openEditModal(product) {
-    setEditingProduct(product)
-    setForm({
-      imageUrl: product.imageUrl || "",
-      name: product.name || "",
-      price: product.price || "",
-      stock: product.stock || "",
-    })
-    setShowEditModal(true)
-    setError("")
-  }
-
-  async function handleEditSubmit(e) {
-    e.preventDefault()
-    setError("")
-    if (!editingProduct) return
-    if (!form.name.trim()) return setError("กรุณากรอกชื่อสินค้า")
+  const handleDelete = async (productId) => {
+    if (!window.confirm("ยืนยันการลบสินค้านี้หรือไม่?")) return;
     try {
-      setIsSubmitting(true)
-      const body = {
-        imageUrl: form.imageUrl.trim(),
-        name: form.name.trim(),
-        price: Number(form.price) || 0,
-        stock: Number(form.stock) || 0,
-      }
-      const res = await fetch(`http://localhost:5000/api/products/${editingProduct.id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-      })
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({}))
-        throw new Error(err.error || "ไม่สามารถอัปเดตสินค้าได้")
-      }
-      setShowEditModal(false)
-      setEditingProduct(null)
-      setForm({ imageUrl: "", name: "", price: "", stock: "" })
-      await loadProducts()
-      alert("อัปเดตข้อมูลสินค้าเรียบร้อย")
+      setIsSubmitting(true);
+      await deleteProduct(productId); // เรียกใช้ฟังก์ชันจาก DataStore
     } catch (err) {
-      console.error(err)
-      setError(err.message || "ข้อผิดพลาด")
+      console.error(err);
+      setError(err.message || "ข้อผิดพลาด");
     } finally {
-      setIsSubmitting(false)
+      setIsSubmitting(false);
     }
-  }
+  };
 
   return (
     <div className="stock-page">
@@ -124,16 +71,22 @@ export default function Stock() {
         <button className="btn-add" onClick={() => setShowModal(true)}>เพิ่มสินค้าใหม่</button>
       </div>
 
-      {loading ? (
-        <div>กำลังโหลด...</div>
+      {products.length === 0 ? (
+        <div>ไม่มีสินค้าในระบบ</div>
       ) : (
         <div className="stock-table-wrap">
           <table className="stock-table">
             <thead>
-              <tr><th>รูป</th><th>ชื่อ</th><th>ราคา</th><th>stock</th><th>จัดการ</th></tr>
+              <tr>
+                <th>รูป</th>
+                <th>ชื่อ</th>
+                <th>ราคา</th>
+                <th>stock</th>
+                <th>จัดการ</th>
+              </tr>
             </thead>
             <tbody>
-              {products.map(p => (
+              {products.map((p) => (
                 <tr key={p.id}>
                   <td className="cell-img">
                     {p.imageUrl ? <img src={p.imageUrl} alt={p.name} /> : <div className="placeholder">No image</div>}
@@ -142,32 +95,13 @@ export default function Stock() {
                   <td>{p.price}</td>
                   <td>{p.stock}</td>
                   <td>
-                    <div style={{display:"flex",gap:8}}>
-                      <button className="btn-edit" onClick={() => openEditModal(p)}>แก้ไข</button>
-                      <button
-                        className="btn-delete"
-                        onClick={async () => {
-                          if (!window.confirm(`ยืนยันการลบ "${p.name}" ?`)) return
-                          try {
-                            setIsSubmitting(true)
-                            const res = await fetch(`http://localhost:5000/api/products/${p.id}`, {
-                              method: "DELETE",
-                            })
-                            if (!res.ok) {
-                              const err = await res.json().catch(()=>({}))
-                              throw new Error(err.error || "ไม่สามารถลบสินค้าได้")
-                            }
-                            await loadProducts()
-                          } catch (err) {
-                            console.error(err)
-                            setError(err.message || "ข้อผิดพลาด")
-                          } finally {
-                            setIsSubmitting(false)
-                          }
-                        }}
-                      >
-                        ลบ
-                      </button>
+                    <div style={{ display: "flex", gap: 8 }}>
+                      <button className="btn-edit" onClick={() => {
+                        setEditingProduct(p);
+                        setForm(p);
+                        setShowEditModal(true);
+                      }}>แก้ไข</button>
+                      <button className="btn-delete" onClick={() => handleDelete(p.id)}>ลบ</button>
                     </div>
                   </td>
                 </tr>
@@ -177,69 +111,45 @@ export default function Stock() {
         </div>
       )}
 
-      {/* create modal */}
+      {/* Modal สำหรับเพิ่มสินค้า */}
       {showModal && (
         <div className="modal-backdrop" onClick={() => setShowModal(false)}>
           <div className="modal" onClick={(e) => e.stopPropagation()}>
             <h3>เพิ่มสินค้าใหม่</h3>
-            <form onSubmit={handleCreate} className="modal-form">
-              <label>รูปภาพ (URL)
-                <input name="imageUrl" value={form.imageUrl} onChange={onChange} placeholder="https://..." />
-              </label>
-              <label>ชื่อ
-                <input name="name" value={form.name} onChange={onChange} required />
-              </label>
-              <label>ราคา
-                <input name="price" type="number" value={form.price} onChange={onChange} />
-              </label>
-              <label>stock
-                <input name="stock" type="number" value={form.stock} onChange={onChange} />
-              </label>
-
-              {error && <div className="form-error">{error}</div>}
-
-              <div className="modal-actions">
-                <button type="button" className="btn-cancel" onClick={() => setShowModal(false)}>ยกเลิก</button>
-                <button type="submit" className="btn-confirm" disabled={isSubmitting}>
-                  {isSubmitting ? "กำลังเพิ่ม..." : "ยืนยันเพิ่ม"}
-                </button>
-              </div>
+            <form onSubmit={handleCreate}>
+              <label>ชื่อสินค้า</label>
+              <input name="name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required />
+              <label>ราคา</label>
+              <input name="price" type="number" value={form.price} onChange={(e) => setForm({ ...form, price: e.target.value })} required />
+              <label>จำนวนในสต็อก</label>
+              <input name="stock" type="number" value={form.stock} onChange={(e) => setForm({ ...form, stock: e.target.value })} required />
+              <label>URL รูปภาพ</label>
+              <input name="imageUrl" value={form.imageUrl} onChange={(e) => setForm({ ...form, imageUrl: e.target.value })} />
+              <button type="submit" disabled={isSubmitting}>ยืนยัน</button>
             </form>
           </div>
         </div>
       )}
 
-      {/* edit modal */}
+      {/* Modal สำหรับแก้ไขสินค้า */}
       {showEditModal && editingProduct && (
         <div className="modal-backdrop" onClick={() => setShowEditModal(false)}>
           <div className="modal" onClick={(e) => e.stopPropagation()}>
             <h3>แก้ไขสินค้า</h3>
-            <form onSubmit={handleEditSubmit} className="modal-form">
-              <label>รูปภาพ (URL)
-                <input name="imageUrl" value={form.imageUrl} onChange={onChange} placeholder="https://..." />
-              </label>
-              <label>ชื่อ
-                <input name="name" value={form.name} onChange={onChange} required />
-              </label>
-              <label>ราคา
-                <input name="price" type="number" value={form.price} onChange={onChange} />
-              </label>
-              <label>stock
-                <input name="stock" type="number" value={form.stock} onChange={onChange} />
-              </label>
-
-              {error && <div className="form-error">{error}</div>}
-
-              <div className="modal-actions">
-                <button type="button" className="btn-cancel" onClick={() => setShowEditModal(false)}>ยกเลิก</button>
-                <button type="submit" className="btn-confirm" disabled={isSubmitting}>
-                  {isSubmitting ? "กำลังบันทึก..." : "บันทึกการแก้ไข"}
-                </button>
-              </div>
+            <form onSubmit={handleEditSubmit}>
+              <label>ชื่อสินค้า</label>
+              <input name="name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required />
+              <label>ราคา</label>
+              <input name="price" type="number" value={form.price} onChange={(e) => setForm({ ...form, price: e.target.value })} required />
+              <label>จำนวนในสต็อก</label>
+              <input name="stock" type="number" value={form.stock} onChange={(e) => setForm({ ...form, stock: e.target.value })} required />
+              <label>URL รูปภาพ</label>
+              <input name="imageUrl" value={form.imageUrl} onChange={(e) => setForm({ ...form, imageUrl: e.target.value })} />
+              <button type="submit" disabled={isSubmitting}>ยืนยัน</button>
             </form>
           </div>
         </div>
       )}
     </div>
-  )
+  );
 }

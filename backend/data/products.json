@@ -15,11 +15,10 @@
     "updatedAt": "2025-11-03T15:08:07.678Z"
   },
   {
-    "id": "1762101930904",
-    "name": "ปลา2",
-    "price": 222,
-    "stock": 2232,
+    "id": "1762385431228",
     "imageUrl": "https://img.th.my-best.com/product_images/8ddc3c2803662067abbe7c9f97261879.jpg?ixlib=rails-4.3.1&q=70&lossless=0&w=800&h=800&fit=clip&s=f637a391b0540bdccea80357b115f89e",
-    "createdAt": "2025-11-02T16:45:30.904Z"
+    "name": "ปลา2",
+    "price": "200",
+    "stock": "1000"
   }
 ]

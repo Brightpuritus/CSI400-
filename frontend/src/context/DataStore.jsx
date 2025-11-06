@@ -42,6 +42,53 @@ export function DataStoreProvider({ children }) {
     }
   }
 
+  const createProduct = async (product) => {
+    try {
+      const res = await fetch("http://localhost:5000/api/products", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(product),
+      });
+      if (!res.ok) throw new Error("Failed to create product");
+      const newProduct = await res.json();
+      setProducts((prev) => [...prev, newProduct]);
+    } catch (err) {
+      console.error("Error creating product:", err);
+      throw err;
+    }
+  };
+
+  const updateProduct = async (id, updatedData) => {
+    try {
+      const res = await fetch(`http://localhost:5000/api/products/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(updatedData),
+      });
+      if (!res.ok) throw new Error("Failed to update product");
+      const updatedProduct = await res.json();
+      setProducts((prev) =>
+        prev.map((product) => (product.id === id ? updatedProduct : product))
+      );
+    } catch (err) {
+      console.error("Error updating product:", err);
+      throw err;
+    }
+  };
+
+  const deleteProduct = async (id) => {
+    try {
+      const res = await fetch(`http://localhost:5000/api/products/${id}`, {
+        method: "DELETE",
+      });
+      if (!res.ok) throw new Error("Failed to delete product");
+      setProducts((prev) => prev.filter((product) => product.id !== id));
+    } catch (err) {
+      console.error("Error deleting product:", err);
+      throw err;
+    }
+  };
+
   const addOrder = async (order) => {
     const response = await fetch("http://localhost:5000/api/orders", {
       method: "POST",
@@ -99,59 +146,47 @@ export function DataStoreProvider({ children }) {
     }
   }
 
-  async function updateStock(productId, quantity) {
+  const updateStock = async (items) => {
     try {
-      console.log("Updating stock for product:", productId, "with quantity:", quantity);
       const res = await fetch("http://localhost:5000/api/products/update-stock", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ productId, quantity }), // ส่งข้อมูลในรูปแบบ JSON
+        body: JSON.stringify({ items }), // ส่งรายการสินค้าที่ต้องการอัปเดต stock
       });
 
       if (!res.ok) {
-        throw new Error("Failed to update stock");
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error || "Failed to update stock");
       }
 
-      const updatedProduct = await res.json();
-
-      // อัปเดต stock ใน Frontend
-      setProducts((prevProducts) =>
-        prevProducts.map((product) =>
-          product.id === updatedProduct.id ? updatedProduct : product
-        )
-      );
+      const updatedProducts = await res.json();
+      setProducts(updatedProducts); // อัปเดตข้อมูลสินค้าใน Frontend
     } catch (err) {
       console.error("Error updating stock:", err);
+      throw err;
     }
-  }
+  };
 
-  async function decreaseStock(orderItems) {
+  const decreaseStock = async (items) => {
     try {
-      for (const item of orderItems) {
-        console.log(`Decreasing stock for product: ${item.productId}, quantity: ${item.quantity}`);
-        const res = await fetch("http://localhost:5000/api/products/update-stock", {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ productId: item.productId, quantity: -item.quantity }), // ใช้ค่าลบเพื่อลด stock
-        });
-
-        if (!res.ok) {
-          throw new Error(`Failed to decrease stock for product ${item.productId}`);
-        }
-
-        const updatedProduct = await res.json();
-
-        // อัปเดต stock ใน Frontend
-        setProducts((prevProducts) =>
-          prevProducts.map((product) =>
-            product.id === updatedProduct.id ? updatedProduct : product
-          )
-        );
+      const res = await fetch("http://localhost:5000/api/products/update-stock", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ items }), // ส่งรายการสินค้าที่ต้องการลด stock
+      });
+  
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error || "Failed to decrease stock");
       }
+  
+      const updatedProducts = await res.json();
+      setProducts(updatedProducts); // อัปเดตข้อมูลสินค้าใน Frontend
     } catch (err) {
       console.error("Error decreasing stock:", err);
+      throw err;
     }
-  }
+  };
 
   const updateDeliveryInfo = async (orderId, trackingNumber, deliveryStatus) => {
     try {
@@ -258,7 +293,10 @@ export function DataStoreProvider({ children }) {
         updateUserRole,
         deleteUser,
         users,
-        setUsers
+        setUsers,
+        createProduct,
+        updateProduct,
+        deleteProduct
       }}
     >
       {children}

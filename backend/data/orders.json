@@ -1,6 +1,6 @@
 [
   {
-    "id": "1762341615532",
+    "id": "1762385479806",
     "productionStatus": null,
     "paymentStatus": "ชำระทั้งหมดแล้ว",
     "paymentProof": null,
@@ -8,93 +8,46 @@
     "customerName": "ผู้ดูแลระบบ",
     "items": [
       {
-        "productId": "1762101863413",
-        "productName": "ปลา",
+        "productId": "1762385431228",
+        "productName": "ปลา2",
         "size": "",
-        "price": 10,
-        "quantity": 2
+        "price": "200",
+        "quantity": 1
       }
     ],
-    "subtotal": 20,
-    "vat": 1.4000000000000001,
-    "totalWithVat": 21.4,
-    "depositAmount": 6.419999999999999,
-    "deliveryDate": "2025-11-28",
-    "deliveryAddress": "นสนน",
+    "subtotal": 200,
+    "vat": 14.000000000000002,
+    "totalWithVat": 214,
+    "depositAmount": 64.2,
+    "deliveryDate": "2025-11-15",
+    "deliveryAddress": "บ้าน",
     "trackingNumber": "1",
     "deliveryStatus": "จัดส่งสำเร็จ",
     "status": "เสร็จสิ้น"
   },
   {
-    "id": "1762342050470",
-    "productionStatus": null,
+    "id": "1762386589249",
+    "productionStatus": "พร้อมจัดส่ง",
     "paymentStatus": "ชำระทั้งหมดแล้ว",
     "paymentProof": null,
     "customerId": 4,
     "customerName": "ผู้ดูแลระบบ",
     "items": [
       {
-        "productId": "1762101863413",
-        "productName": "ปลา",
+        "productId": "1762385431228",
+        "productName": "ปลา2",
         "size": "",
-        "price": 10,
-        "quantity": 10
+        "price": "200",
+        "quantity": 1
       }
     ],
-    "subtotal": 100,
-    "vat": 7.000000000000001,
-    "totalWithVat": 107,
-    "depositAmount": 32.1,
-    "deliveryDate": "2025-11-11",
-    "deliveryAddress": "hhh",
+    "subtotal": 200,
+    "vat": 14.000000000000002,
+    "totalWithVat": 214,
+    "depositAmount": 64.2,
+    "deliveryDate": "2025-11-18",
+    "deliveryAddress": "บ้าน",
     "trackingNumber": "2",
-    "deliveryStatus": "จัดส่งสำเร็จ",
-    "status": "เสร็จสิ้น"
-  },
-  {
-    "id": "1762354174936",
-    "productionStatus": "รอเริ่มผลิต",
-    "paymentStatus": "ยังไม่ได้ชำระเงิน",
-    "paymentProof": null,
-    "customerId": "1762354126432",
-    "customerName": "halo111",
-    "items": [
-      {
-        "productId": "1762101863413",
-        "productName": "ปลา",
-        "size": "",
-        "price": 10,
-        "quantity": 10
-      }
-    ],
-    "subtotal": 100,
-    "vat": 7.000000000000001,
-    "totalWithVat": 107,
-    "depositAmount": 32.1,
-    "deliveryDate": "2025-11-27",
-    "deliveryAddress": "120"
-  },
-  {
-    "id": "1762354258398",
-    "productionStatus": "รอเริ่มผลิต",
-    "paymentStatus": "ยังไม่ได้ชำระเงิน",
-    "paymentProof": null,
-    "customerId": "1762354197863",
-    "customerName": "nigga111",
-    "items": [
-      {
-        "productId": "1762101863413",
-        "productName": "ปลา",
-        "size": "",
-        "price": 10,
-        "quantity": 6
-      }
-    ],
-    "subtotal": 60,
-    "vat": 4.2,
-    "totalWithVat": 64.2,
-    "depositAmount": 19.26,
-    "deliveryDate": "2025-11-13",
-    "deliveryAddress": "1412"
+    "deliveryStatus": "กำลังจัดส่ง"
   }
 ]
