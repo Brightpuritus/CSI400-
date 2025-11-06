@@ -10,6 +10,7 @@ import "./NewOrder.css";
 const CASE_SIZE = 24; // 1 ลัง มีกี่กระป๋อง
 const MIN_CASES = 2; // ขั้นต่ำเป็นจำนวน "ลัง"
 const MIN_TOTAL_BAHT = 0; // หรือขั้นต่ำเป็นยอดเงิน (0 = ไม่ใช้)
+const PICKUP_TEXT = "รับด้วยตนเอง";
 
 function NewOrder() {
   const { user } = useAuth();
@@ -20,6 +21,11 @@ function NewOrder() {
   const [cart, setCart] = useState([]);
   const [deliveryDate, setDeliveryDate] = useState("");
   const [deliveryAddress, setDeliveryAddress] = useState("");
+  // store previous typed address so we can restore when unchecking pickup
+  const [prevAddress, setPrevAddress] = useState("");
+  // new: pickup checkbox state
+  const [isPickup, setIsPickup] = useState(false);
+
   const [customerPhone, setCustomerPhone] = useState("");
   const [companyPhone, setCompanyPhone] = useState("02-000-0000"); // เปลี่ยนได้
 
@@ -109,6 +115,19 @@ function NewOrder() {
   const total = subtotal + vat;
   const deposit = total * 0.3; // มัดจำ 30%
 
+  // when toggling pickup checkbox
+  const handleTogglePickup = (checked) => {
+    setIsPickup(checked);
+    if (checked) {
+      // save previous typed address and set deliveryAddress to pickup text
+      setPrevAddress(deliveryAddress || "");
+      setDeliveryAddress(PICKUP_TEXT);
+    } else {
+      // restore previous address
+      setDeliveryAddress(prevAddress || "");
+    }
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
     if (cart.length === 0) {
@@ -139,16 +158,19 @@ function NewOrder() {
       return;
     }
 
+    // ensure deliveryAddress is pickup text when isPickup true
+    const finalAddress = isPickup ? PICKUP_TEXT : deliveryAddress;
+
     addOrder({
-      customerId: user.id,
-      customerName: user.name,
+      customerId: user?.id,
+      customerName: user?.name,
       items: cart,
       subtotal,
       vat,
       totalWithVat: total,
       depositAmount: deposit,
       deliveryDate,
-      deliveryAddress,
+      deliveryAddress: finalAddress,
       customerPhone,
       companyPhone,
       paymentStatus: "ยังไม่ได้ชำระเงิน", // เพิ่มสถานะเริ่มต้น
@@ -314,14 +336,46 @@ function NewOrder() {
                     <label htmlFor="deliveryAddress" className="form-label">
                       ที่อยู่จัดส่ง
                     </label>
+
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 12,
+                        marginBottom: 8,
+                      }}
+                    >
+                      <label
+                        style={{
+                          display: "inline-flex",
+                          alignItems: "center",
+                          gap: 8,
+                        }}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={isPickup}
+                          onChange={(e) =>
+                            handleTogglePickup(e.target.checked)
+                          }
+                        />
+                        รับด้วยตนเอง
+                      </label>
+                    </div>
+
                     <textarea
                       id="deliveryAddress"
                       value={deliveryAddress}
-                      onChange={(e) => setDeliveryAddress(e.target.value)}
+                      onChange={(e) => {
+                        setDeliveryAddress(e.target.value);
+                        // keep prevAddress in sync when user types and not pickup
+                        if (!isPickup) setPrevAddress(e.target.value);
+                      }}
                       className="form-input"
                       rows={3}
                       placeholder="ชื่อผู้รับ, ที่อยู่, แขวง/ตำบล, เขต/อำเภอ, จังหวัด, รหัสไปรษณีย์, เบอร์โทร"
-                      required
+                      required={!isPickup}
+                      disabled={isPickup}
                     />
                   </div>
 

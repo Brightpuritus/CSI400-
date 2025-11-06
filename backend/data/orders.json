@@ -49,5 +49,32 @@
     "deliveryAddress": "บ้าน",
     "trackingNumber": "2",
     "deliveryStatus": "กำลังจัดส่ง"
+  },
+  {
+    "id": "1762446153194",
+    "productionStatus": "พร้อมจัดส่ง",
+    "paymentStatus": "ชำระทั้งหมดแล้ว",
+    "paymentProof": null,
+    "customerId": 4,
+    "customerName": "ผู้ดูแลระบบ",
+    "items": [
+      {
+        "productId": "1762385431228",
+        "productName": "ปลา2",
+        "unit": "ลัง",
+        "packSize": 24,
+        "pricePerCan": "200",
+        "price": 4800,
+        "quantity": 4
+      }
+    ],
+    "subtotal": 19200,
+    "vat": 1344.0000000000002,
+    "totalWithVat": 20544,
+    "depositAmount": 6163.2,
+    "deliveryDate": "2025-11-07",
+    "deliveryAddress": "รับด้วยตนเอง",
+    "customerPhone": "1200000",
+    "companyPhone": "02-000-0000"
   }
 ]
