@@ -12,9 +12,9 @@ function Delivery() {
   const [deliveryStatus, setDeliveryStatus] = useState("กำลังจัดส่ง");
 
   const deliveryOrders = {
-    ready: orders.filter((o) => o.productionStatus === "พร้อมจัดส่ง" && !o.deliveryStatus),
-    shipping: orders.filter((o) => o.deliveryStatus === "กำลังจัดส่ง"),
-    delivered: orders.filter((o) => o.deliveryStatus === "จัดส่งสำเร็จ"),
+    ready: orders?.filter((o) => o.deliveryStatus === "พร้อมจัดส่ง") || [],
+    shipping: orders?.filter((o) => o.deliveryStatus === "กำลังจัดส่ง") || [],
+    delivered: orders?.filter((o) => o.deliveryStatus === "จัดส่งสำเร็จ") || [],
   };
 
   const handleUpdateDelivery = async () => {
@@ -68,14 +68,14 @@ function Delivery() {
         <div className="delivery-section">
           <h2 className="section-title">
             <Package size={20} />
-            พร้อมจัดส่ง ({deliveryOrders.ready.length})
+            พร้อมจัดส่ง ({deliveryOrders.ready?.length || 0})
           </h2>
 
-          {deliveryOrders.ready.length === 0 ? (
+          {deliveryOrders.ready?.length === 0 ? (
             <div className="empty-state-small">ไม่มีคำสั่งซื้อที่พร้อมจัดส่ง</div>
           ) : (
             <div className="delivery-cards">
-              {deliveryOrders.ready.map((order) => {
+              {deliveryOrders.ready?.map((order) => {
                 const deposit = order.depositAmount ?? (order.totalWithVat || 0) * 0.3;
                 const remaining = Math.max(0, (order.totalWithVat || 0) - deposit);
                 const needFullPayment = order.paymentStatus === "ชำระมัดจำแล้ว";
@@ -88,14 +88,13 @@ function Delivery() {
                     </div>
 
                     <div className="delivery-card-items">
-                      {order.items.map((item, idx) => (
+                      {order.items?.map((item, idx) => (
                         <div key={idx} className="item-row">
                           {item.productName} x{item.quantity}
                         </div>
                       ))}
                     </div>
 
-                    {/* แสดงที่อยู่จัดส่ง ถ้ามี */}
                     {order.deliveryAddress && (
                       <div className="tracking-info" style={{ whiteSpace: "pre-line" }}>
                         <strong>ที่อยู่จัดส่ง:</strong>
@@ -103,13 +102,12 @@ function Delivery() {
                       </div>
                     )}
                     <div className="tracking-info">
-                  <strong>เบอร์ลูกค้า:</strong> {order.customerPhone || "-"}
-                </div>
-                <div className="tracking-info">
-                  <strong>เบอร์บริษัท:</strong> {order.companyPhone || "02-000-0000"}
-                </div>
+                      <strong>เบอร์ลูกค้า:</strong> {order.customerPhone || "-"}
+                    </div>
+                    <div className="tracking-info">
+                      <strong>เบอร์บริษัท:</strong> {order.companyPhone || "02-000-0000"}
+                    </div>
 
-                    {/* แจ้งเตือนให้ชำระเต็มจำนวนก่อนจัดส่ง ถ้ายังจ่ายแค่มัดจำ */}
                     {needFullPayment && (
                       <div
                         className="alert-warning"
@@ -148,13 +146,13 @@ function Delivery() {
         <div className="delivery-section">
           <h2 className="section-title">
             <Truck size={20} />
-            กำลังจัดส่ง ({deliveryOrders.shipping.length})
+            กำลังจัดส่ง ({deliveryOrders.shipping?.length || 0})
           </h2>
-          {deliveryOrders.shipping.length === 0 ? (
+          {deliveryOrders.shipping?.length === 0 ? (
             <div className="empty-state-small">ไม่มีคำสั่งซื้อที่กำลังจัดส่ง</div>
           ) : (
             <div className="delivery-cards">
-              {deliveryOrders.shipping.map((order) => (
+              {deliveryOrders.shipping?.map((order) => (
                 <div key={order.id} className="delivery-card">
                   <div className="delivery-card-header">
                     <span className="order-id">คำสั่งซื้อ #{order.id}</span>
@@ -176,13 +174,13 @@ function Delivery() {
         <div className="delivery-section">
           <h2 className="section-title">
             <CheckCircle size={20} />
-            จัดส่งสำเร็จ ({deliveryOrders.delivered.length})
+            จัดส่งสำเร็จ ({deliveryOrders.delivered?.length || 0})
           </h2>
-          {deliveryOrders.delivered.length === 0 ? (
+          {deliveryOrders.delivered?.length === 0 ? (
             <div className="empty-state-small">ยังไม่มีคำสั่งซื้อที่จัดส่งสำเร็จ</div>
           ) : (
             <div className="delivery-cards">
-              {deliveryOrders.delivered.map((order) => (
+              {deliveryOrders.delivered?.map((order) => (
                 <div key={order.id} className="delivery-card delivery-card-success">
                   <div className="delivery-card-header">
                     <span className="order-id">คำสั่งซื้อ #{order.id}</span>

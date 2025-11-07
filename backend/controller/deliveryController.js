@@ -1,31 +1,59 @@
-const { readJSON, writeJSON } = require("../utils/fileUtils")
+const pool = require("../utils/db"); // ใช้ MySQL connection pool
 
-const getDeliveries = (req, res) => {
-  const orders = readJSON("orders.json")
-  const deliveries = orders.filter((o) => o.deliveryStatus)
-  res.json(deliveries)
-}
+// GET /api/deliveries -> ดึงข้อมูลการจัดส่งทั้งหมด
+const getDeliveries = async (req, res) => {
+  try {
+    // ดึงคำสั่งซื้อที่มีสถานะการจัดส่งจากฐานข้อมูล
+    const [deliveries] = await pool.query(
+      "SELECT * FROM orders WHERE deliveryStatus IS NOT NULL ORDER BY updatedAt DESC"
+    );
+    res.json(deliveries);
+  } catch (err) {
+    console.error("Error fetching deliveries:", err);
+    res.status(500).json({ error: "Failed to fetch deliveries" });
+  }
+};
 
-const updateDelivery = (req, res) => {
-  const orders = readJSON("orders.json")
-  const { id, trackingNumber, deliveryStatus } = req.body
+// PUT /api/deliveries -> อัปเดตสถานะการจัดส่ง
+const updateDelivery = async (req, res) => {
+  const { id, trackingNumber, deliveryStatus } = req.body;
 
-  const index = orders.findIndex((order) => order.id === id)
-  if (index === -1) {
-    return res.status(404).json({ error: "Order not found" })
+  if (!id || !deliveryStatus) {
+    return res.status(400).json({ error: "Missing required fields" });
   }
 
-  orders[index].trackingNumber = trackingNumber
-  orders[index].deliveryStatus = deliveryStatus
+  const conn = await pool.getConnection();
+  try {
+    await conn.beginTransaction();
 
-  // อัปเดตสถานะคำสั่งซื้อเป็น "เสร็จสิ้น" และลบ productionStatus หากจัดส่งสำเร็จ
-  if (deliveryStatus === "จัดส่งสำเร็จ") {
-    orders[index].status = "เสร็จสิ้น"
-    orders[index].productionStatus = null // ลบสถานะการผลิต
+    // อัปเดตสถานะการจัดส่งในตาราง `orders`
+    const [result] = await conn.query(
+      `UPDATE orders 
+       SET trackingNumber = ?, deliveryStatus = ?, 
+           status = CASE WHEN ? = 'จัดส่งสำเร็จ' THEN 'เสร็จสิ้น' ELSE status END,
+           productionStatus = CASE WHEN ? = 'จัดส่งสำเร็จ' THEN NULL ELSE productionStatus END,
+           updatedAt = NOW()
+       WHERE id = ?`,
+      [trackingNumber, deliveryStatus, deliveryStatus, deliveryStatus, id]
+    );
+
+    if (result.affectedRows === 0) {
+      await conn.rollback();
+      return res.status(404).json({ error: "Order not found" });
+    }
+
+    // ดึงข้อมูลคำสั่งซื้อที่อัปเดตแล้ว
+    const [[updatedOrder]] = await conn.query("SELECT * FROM orders WHERE id = ?", [id]);
+
+    await conn.commit();
+    res.json(updatedOrder);
+  } catch (err) {
+    await conn.rollback();
+    console.error("Error updating delivery:", err);
+    res.status(500).json({ error: "Failed to update delivery" });
+  } finally {
+    conn.release();
   }
+};
 
-  writeJSON("orders.json", orders)
-  res.json(orders[index])
-}
-
-module.exports = { getDeliveries, updateDelivery }
+module.exports = { getDeliveries, updateDelivery };

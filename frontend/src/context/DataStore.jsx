@@ -6,27 +6,53 @@ const DataStoreContext = createContext(null)
 
 export function DataStoreProvider({ children }) {
   const [products, setProducts] = useState([])
-  const [orders, setOrders] = useState([])
+  const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
   const [users, setUsers] = useState([]); // เพิ่ม state สำหรับ users
+  const [deliveries, setDeliveries] = useState([]);
 
   // ดึงข้อมูลสินค้าและคำสั่งซื้อจาก Backend
   useEffect(() => {
     const fetchProducts = async () => {
-      const response = await fetch("http://localhost:5000/api/products")
-      const data = await response.json()
-      setProducts(data)
-    }
+      setLoading(true);
+      try {
+        const response = await fetch("http://localhost:5000/api/products");
+        const data = await response.json();
+        setProducts(data);
+      } catch (err) {
+        console.error("Error fetching products:", err);
+        setError("Failed to fetch products");
+      } finally {
+        setLoading(false);
+      }
+    };
 
     const fetchOrders = async () => {
-      const response = await fetch("http://localhost:5000/api/orders")
-      const data = await response.json()
-      setOrders(data)
-    }
+      try {
+        const response = await fetch("http://localhost:5000/api/orders");
+        if (!response.ok) throw new Error("Failed to fetch orders");
+        const data = await response.json();
+        setOrders(data);
+      } catch (err) {
+        console.error("Error fetching orders:", err);
+      }
+    };
 
-    fetchProducts()
-    fetchOrders()
-  }, [])
+    const fetchDeliveries = async () => {
+      try {
+        const response = await fetch("http://localhost:5000/api/delivery");
+        const data = await response.json();
+        setDeliveries(data);
+      } catch (err) {
+        console.error("Error fetching deliveries:", err);
+      }
+    };
+
+    fetchProducts();
+    fetchOrders();
+    fetchDeliveries();
+  }, []);
 
   async function loadProducts() {
     setLoading(true);
@@ -101,16 +127,21 @@ export function DataStoreProvider({ children }) {
   }
 
   const updateOrderStatus = async (orderId, status) => {
-    const response = await fetch(`http://localhost:5000/api/orders/${orderId}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ status }),
-    })
-    const updatedOrder = await response.json()
-    setOrders((prevOrders) =>
-      prevOrders.map((order) => (order.id === orderId ? updatedOrder : order))
-    )
-  }
+    try {
+      const response = await fetch(`http://localhost:5000/api/orders/${orderId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status }),
+      });
+      if (!response.ok) throw new Error("Failed to update order status");
+      const updatedOrder = await response.json();
+      setOrders((prevOrders) =>
+        prevOrders.map((order) => (order.id === orderId ? updatedOrder : order))
+      );
+    } catch (err) {
+      console.error("Error updating order status:", err);
+    }
+  };
 
   // DataStore.jsx
   const FLOW = ["รอเริ่มผลิต", "กำลังผลิต", "บรรจุกระป๋อง", "พร้อมจัดส่ง"]

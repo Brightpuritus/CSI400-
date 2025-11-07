@@ -1,76 +1,121 @@
-const { readJSON } = require("../utils/fileUtils")
-const fs = require("fs");
-const path = require("path");
-const productsPath = path.join(__dirname, "../data/products.json");
+const pool = require("../utils/db"); // ใช้ MySQL connection pool
 
-const getProducts = (req, res) => {
+// GET /api/products -> ดึงข้อมูลสินค้าทั้งหมด
+const getProducts = async (req, res) => {
   try {
-    const products = readJSON("products.json"); // อ่านข้อมูลจากไฟล์ products.json
-    res.json(products); // ส่งข้อมูลสินค้าในรูปแบบ JSON
-  } catch (error) {
-    console.error("Error reading products:", error);
-    res.status(500).json({ error: "Failed to load products" });
+    const [rows] = await pool.query("SELECT * FROM products ORDER BY id ASC");
+    res.json(rows);
+  } catch (err) {
+    console.error("Error fetching products:", err);
+    res.status(500).json({ error: "Failed to fetch products" });
   }
 };
 
-function updateStock(req, res) {
+// POST /api/products -> สร้างสินค้าใหม่
+const createProduct = async (req, res) => {
+  const { name, price = 0, stock = 0, imageUrl = null } = req.body;
+
+  try {
+    const [result] = await pool.query(
+      "INSERT INTO products (name, price, stock, imageUrl) VALUES (?, ?, ?, ?)",
+      [name, price, stock, imageUrl]
+    );
+
+    const newProduct = {
+      id: result.insertId,
+      name,
+      price,
+      stock,
+      imageUrl,
+    };
+
+    res.status(201).json(newProduct);
+  } catch (err) {
+    console.error("Error creating product:", err);
+    res.status(500).json({ error: "Failed to create product" });
+  }
+};
+
+// PUT /api/products/update-stock -> อัปเดตสต็อกสินค้า
+const updateStock = async (req, res) => {
   const { items } = req.body;
 
   if (!items || !Array.isArray(items)) {
     return res.status(400).json({ error: "Invalid request body" });
   }
 
-  const products = JSON.parse(fs.readFileSync(productsPath, "utf-8"));
+  const conn = await pool.getConnection();
+  try {
+    await conn.beginTransaction();
 
-  items.forEach((item) => {
-    const product = products.find((p) => p.id === item.productId);
-    if (product) {
-      const currentStock = Number(product.stock) || 0;
-      const change = Number(item.quantity) || 0;
-
-      // ✅ เพิ่มหรือตัดสต็อกได้ในฟังก์ชันเดียว
-      product.stock = Math.max(0, currentStock + change);
+    for (const item of items) {
+      const { productId, quantity } = item;
+      await conn.query(
+        "UPDATE products SET stock = GREATEST(0, stock + ?) WHERE id = ?",
+        [quantity, productId]
+      );
     }
-  });
 
-  fs.writeFileSync(productsPath, JSON.stringify(products, null, 2));
-  res.json(products);
-}
+    const [updatedProducts] = await conn.query("SELECT * FROM products");
+    await conn.commit();
 
-
-function createProduct(req, res) {
-  const products = JSON.parse(fs.readFileSync(productsPath, "utf-8"));
-  const newProduct = { id: Date.now().toString(), ...req.body };
-  products.push(newProduct);
-  fs.writeFileSync(productsPath, JSON.stringify(products, null, 2));
-  res.status(201).json(newProduct);
-}
-
-function updateProduct(req, res) {
-  const { id } = req.params;
-  const products = JSON.parse(fs.readFileSync(productsPath, "utf-8"));
-  const productIndex = products.findIndex((p) => p.id === id);
-
-  if (productIndex === -1) {
-    return res.status(404).json({ error: "Product not found" });
+    res.json(updatedProducts);
+  } catch (err) {
+    await conn.rollback();
+    console.error("Error updating stock:", err);
+    res.status(500).json({ error: "Failed to update stock" });
+  } finally {
+    conn.release();
   }
+};
 
-  products[productIndex] = { ...products[productIndex], ...req.body };
-  fs.writeFileSync(productsPath, JSON.stringify(products, null, 2));
-  res.json(products[productIndex]);
-}
-
-function deleteProduct(req, res) {
+// PUT /api/products/:id -> อัปเดตข้อมูลสินค้า
+const updateProduct = async (req, res) => {
   const { id } = req.params;
-  const products = JSON.parse(fs.readFileSync(productsPath, "utf-8"));
-  const updatedProducts = products.filter((p) => p.id !== id);
+  const updates = req.body;
 
-  if (products.length === updatedProducts.length) {
-    return res.status(404).json({ error: "Product not found" });
+  const fields = [];
+  const values = [];
+  for (const key in updates) {
+    fields.push(`${key} = ?`);
+    values.push(updates[key]);
   }
+  values.push(id);
 
-  fs.writeFileSync(productsPath, JSON.stringify(updatedProducts, null, 2));
-  res.status(204).end();
-}
+  try {
+    const [result] = await pool.query(
+      `UPDATE products SET ${fields.join(", ")} WHERE id = ?`,
+      values
+    );
 
-module.exports = { getProducts, updateStock, createProduct, updateProduct, deleteProduct }
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: "Product not found" });
+    }
+
+    const [[updatedProduct]] = await pool.query("SELECT * FROM products WHERE id = ?", [id]);
+    res.json(updatedProduct);
+  } catch (err) {
+    console.error("Error updating product:", err);
+    res.status(500).json({ error: "Failed to update product" });
+  }
+};
+
+// DELETE /api/products/:id -> ลบสินค้า
+const deleteProduct = async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const [result] = await pool.query("DELETE FROM products WHERE id = ?", [id]);
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: "Product not found" });
+    }
+
+    res.status(204).end();
+  } catch (err) {
+    console.error("Error deleting product:", err);
+    res.status(500).json({ error: "Failed to delete product" });
+  }
+};
+
+module.exports = { getProducts, createProduct, updateStock, updateProduct, deleteProduct };

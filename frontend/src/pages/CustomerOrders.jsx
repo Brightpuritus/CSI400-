@@ -49,16 +49,7 @@ function CustomerOrders() {
         </Link>
       </div>
 
-      {userOrders.length === 0 ? (
-        <div className="empty-state">
-          <Package size={64} />
-          <h3>ยังไม่มีคำสั่งซื้อ</h3>
-          <p>เริ่มสั่งซื้อสินค้าของคุณวันนี้</p>
-          <Link to="/customer/orders/new" className="btn btn-primary">
-            สั่งซื้อเลย
-          </Link>
-        </div>
-      ) : (
+      {userOrders?.length > 0 ? (
         <div className="orders-grid">
           {userOrders.map((order) => (
             <div key={order.id} className="order-card">
@@ -88,7 +79,7 @@ function CustomerOrders() {
                 </div>
                 <div className="order-detail-item">
                   <Package size={16} />
-                  <span>{order.items.length} รายการ</span>
+                  <span>{order.items?.length || 0} รายการ</span>
                 </div>
                 <div className="order-detail-item">
                   <DollarSign size={16} />
@@ -215,6 +206,15 @@ function CustomerOrders() {
               </div>
             </div>
           ))}
+        </div>
+      ) : (
+        <div className="empty-state">
+          <Package size={64} />
+          <h3>ยังไม่มีคำสั่งซื้อ</h3>
+          <p>เริ่มสั่งซื้อสินค้าของคุณวันนี้</p>
+          <Link to="/customer/orders/new" className="btn btn-primary">
+            สั่งซื้อเลย
+          </Link>
         </div>
       )}
 

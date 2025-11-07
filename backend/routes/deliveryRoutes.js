@@ -1,8 +1,8 @@
-const express = require("express")
-const { getDeliveries, updateDelivery } = require("../controller/deliveryController")
-const router = express.Router()
+const express = require("express");
+const { getDeliveries, updateDelivery } = require("../controller/deliveryController");
+const router = express.Router();
 
-router.get("/", getDeliveries)
-router.put("/", updateDelivery) // Route สำหรับอัปเดตข้อมูลการจัดส่ง
+router.get("/", getDeliveries); // ดึงข้อมูลการจัดส่ง
+router.put("/:id", updateDelivery); // อัปเดตข้อมูลการจัดส่ง
 
-module.exports = router
+module.exports = router;

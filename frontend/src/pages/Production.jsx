@@ -10,71 +10,80 @@ function Production() {
   const [activeTab, setActiveTab] = useState("pending");
 
   // กรองออเดอร์ตามสถานะการผลิต
-  const productionOrders = {
-    pending: orders.filter(
-      (o) =>
-        o.productionStatus === "รอเริ่มผลิต" &&
-        o.paymentStatus !== "ยังไม่ได้ชำระเงิน" // เพิ่มเงื่อนไขนี้
-    ),
-    inProgress: orders.filter(
-      (o) =>
-        o.productionStatus === "กำลังผลิต" &&
-        o.paymentStatus !== "ยังไม่ได้ชำระเงิน" // เพิ่มเงื่อนไขนี้
-    ),
-    packaging: orders.filter(
-      (o) =>
-        o.productionStatus === "บรรจุกระป๋อง" &&
-        o.paymentStatus !== "ยังไม่ได้ชำระเงิน" // เพิ่มเงื่อนไขนี้
-    ),
-    ready: orders.filter(
-      (o) =>
-        o.productionStatus === "พร้อมจัดส่ง" &&
-        o.deliveryStatus !== "จัดส่งแล้ว" &&
-        o.status !== "เสร็จสิ้น" &&
-        o.paymentStatus !== "ยังไม่ได้ชำระเงิน" // เพิ่มเงื่อนไขนี้
-    ),
-  };
+  const productionOrders = orders?.filter((o) => o.productionStatus === "รอเริ่มผลิต") || [];
 
   const stats = [
     {
       label: "รอเริ่มผลิต",
-      value: productionOrders.pending.length,
+      value: productionOrders.length,
       icon: Clock,
       color: "stat-warning",
     },
     {
       label: "กำลังผลิต",
-      value: productionOrders.inProgress.length,
+      value: orders.filter(
+        (o) =>
+          o.productionStatus === "กำลังผลิต" &&
+          o.paymentStatus !== "ยังไม่ได้ชำระเงิน"
+      ).length,
       icon: Factory,
       color: "stat-info",
     },
     {
       label: "บรรจุกระป๋อง",
-      value: productionOrders.packaging.length,
+      value: orders.filter(
+        (o) =>
+          o.productionStatus === "บรรจุกระป๋อง" &&
+          o.paymentStatus !== "ยังไม่ได้ชำระเงิน"
+      ).length,
       icon: Package,
       color: "stat-primary",
     },
     {
       label: "พร้อมจัดส่ง",
-      value: productionOrders.ready.length,
+      value: orders.filter(
+        (o) =>
+          o.productionStatus === "พร้อมจัดส่ง" &&
+          o.deliveryStatus !== "จัดส่งแล้ว" &&
+          o.status !== "เสร็จสิ้น" &&
+          o.paymentStatus !== "ยังไม่ได้ชำระเงิน"
+      ).length,
       icon: CheckCircle,
       color: "stat-success",
     },
   ];
 
   const tabs = [
-    { id: "pending", label: "รอเริ่มผลิต", orders: productionOrders.pending },
+    { id: "pending", label: "รอเริ่มผลิต", orders: productionOrders },
     {
       id: "inProgress",
       label: "กำลังผลิต",
-      orders: productionOrders.inProgress,
+      orders: orders.filter(
+        (o) =>
+          o.productionStatus === "กำลังผลิต" &&
+          o.paymentStatus !== "ยังไม่ได้ชำระเงิน"
+      ),
     },
     {
       id: "packaging",
       label: "บรรจุกระป๋อง",
-      orders: productionOrders.packaging,
+      orders: orders.filter(
+        (o) =>
+          o.productionStatus === "บรรจุกระป๋อง" &&
+          o.paymentStatus !== "ยังไม่ได้ชำระเงิน"
+      ),
     },
-    { id: "ready", label: "พร้อมจัดส่ง", orders: productionOrders.ready },
+    {
+      id: "ready",
+      label: "พร้อมจัดส่ง",
+      orders: orders.filter(
+        (o) =>
+          o.productionStatus === "พร้อมจัดส่ง" &&
+          o.deliveryStatus !== "จัดส่งแล้ว" &&
+          o.status !== "เสร็จสิ้น" &&
+          o.paymentStatus !== "ยังไม่ได้ชำระเงิน"
+      ),
+    },
   ];
 
   const FLOW = ["รอเริ่มผลิต", "กำลังผลิต", "บรรจุกระป๋อง", "พร้อมจัดส่ง"];
@@ -118,7 +127,18 @@ function Production() {
         </div>
 
         <div className="tab-content">
-          {tabs.find((t) => t.id === activeTab)?.orders.length === 0 ? (
+          {activeTab === "pending" ? (
+            productionOrders.length > 0 ? (
+              productionOrders.map((order) => (
+                <div key={order.id}>
+                  <h3>คำสั่งซื้อ #{order.id}</h3>
+                  <p>สถานะ: {order.productionStatus}</p>
+                </div>
+              ))
+            ) : (
+              <p>ไม่มีคำสั่งซื้อในสถานะนี้</p>
+            )
+          ) : tabs.find((t) => t.id === activeTab)?.orders.length === 0 ? (
             <div className="empty-state">
               <Package size={64} />
               <p>ไม่มีคำสั่งซื้อในสถานะนี้</p>

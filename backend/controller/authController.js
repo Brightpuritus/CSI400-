@@ -1,73 +1,66 @@
-const bcrypt = require("bcryptjs")
-const { readJSON, writeJSON } = require("../utils/fileUtils")
+const bcrypt = require("bcryptjs");
+const pool = require("../utils/db"); // ใช้ MySQL connection pool
 
-const USERS_FILE = "users.json"
-const SALT_ROUNDS = 10
+const SALT_ROUNDS = 10;
 
+// ฟังก์ชัน Login
 const login = async (req, res) => {
   try {
-    const { email, password } = req.body || {}
-    if (!email || !password) return res.status(400).json({ error: "Missing email or password" })
+    const { email, password } = req.body || {};
+    if (!email || !password) return res.status(400).json({ error: "Missing email or password" });
 
-    const users = Array.isArray(readJSON(USERS_FILE)) ? readJSON(USERS_FILE) : []
-    const user = users.find((u) => u && String(u.email).toLowerCase() === String(email).toLowerCase())
-    if (!user) return res.status(401).json({ error: "Invalid credentials" })
+    // ค้นหาผู้ใช้ในฐานข้อมูล
+    const [rows] = await pool.query("SELECT * FROM users WHERE email = ?", [email]);
+    const user = rows[0];
+    if (!user) return res.status(401).json({ error: "Invalid credentials" });
 
-    const stored = String(user.password || "")
+    const stored = String(user.password || "");
 
-    // if stored password looks like a bcrypt hash -> compare with bcrypt
-    if (stored.startsWith("$2a$") || stored.startsWith("$2b$") || stored.startsWith("$2y$")) {
-      const ok = await bcrypt.compare(password, stored)
-      if (!ok) return res.status(401).json({ error: "Invalid credentials" })
-    } else {
-      // legacy plain-text password: allow login and migrate to hashed password
-      if (stored !== password) return res.status(401).json({ error: "Invalid credentials" })
-      try {
-        user.password = await bcrypt.hash(password, SALT_ROUNDS)
-        writeJSON(USERS_FILE, users)
-      } catch (e) {
-        console.warn("Failed to migrate user password to hash:", e)
-      }
-    }
+    // ตรวจสอบรหัสผ่าน
+    const ok = await bcrypt.compare(password, stored);
+    if (!ok) return res.status(401).json({ error: "Invalid credentials" });
 
-    const { password: _, ...safe } = user
-    return res.json({ user: safe })
+    // ลบรหัสผ่านออกจากผลลัพธ์ก่อนส่งกลับ
+    const { password: _, ...safe } = user;
+    return res.json({ user: safe });
   } catch (err) {
-    console.error("Login error:", err)
-    return res.status(500).json({ error: "Server error" })
+    console.error("Login error:", err);
+    return res.status(500).json({ error: "Server error" });
   }
-}
+};
 
-// แก้เฉพาะ register ให้บังคับ role เป็น "customer" แล้วเขียนลงไฟล์ users.json
+// ฟังก์ชัน Register
 const register = async (req, res) => {
   try {
-    const { email, password, name } = req.body || {}
-    if (!email || !password || !name) return res.status(400).json({ error: "Missing fields" })
+    const { email, password, name } = req.body || {};
+    if (!email || !password || !name) return res.status(400).json({ error: "Missing fields" });
 
-    const users = Array.isArray(readJSON(USERS_FILE)) ? readJSON(USERS_FILE) : []
-    const exists = users.find((u) => u && String(u.email).toLowerCase() === String(email).toLowerCase())
-    if (exists) return res.status(409).json({ error: "Email already exists" })
+    // ตรวจสอบว่าอีเมลมีอยู่ในระบบหรือไม่
+    const [exists] = await pool.query("SELECT id FROM users WHERE email = ?", [email]);
+    if (exists.length > 0) return res.status(409).json({ error: "Email already exists" });
 
-    const hashed = await bcrypt.hash(password, SALT_ROUNDS)
+    // แฮชรหัสผ่าน
+    const hashed = await bcrypt.hash(password, SALT_ROUNDS);
+
+    // เพิ่มผู้ใช้ใหม่ในฐานข้อมูล
+    const [result] = await pool.query(
+      "INSERT INTO users (email, password, name, role, createdAt) VALUES (?, ?, ?, ?, NOW())",
+      [email, hashed, name, "customer"]
+    );
 
     const newUser = {
-      id: `${Date.now()}`,
+      id: result.insertId,
       email,
-      password: hashed,
       name,
       role: "customer",
       createdAt: new Date().toISOString(),
-    }
+    };
 
-    users.push(newUser)
-    writeJSON(USERS_FILE, users)
-
-    const { password: _, ...safe } = newUser
-    return res.status(201).json({ user: safe })
+    return res.status(201).json({ user: newUser });
   } catch (err) {
-    console.error("Register error:", err)
-    return res.status(500).json({ error: "Server error" })
+    console.error("Register error:", err);
+    return res.status(500).json({ error: "Server error" });
   }
-}
+};
 
-module.exports = { login, register }
+module.exports = { login, register };
