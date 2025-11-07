@@ -8,7 +8,7 @@ import { ShoppingCart, Plus, Minus, Trash2, ArrowLeft } from "lucide-react";
 import "./NewOrder.css";
 
 const CASE_SIZE = 24; // 1 ลัง มีกี่กระป๋อง
-const MIN_CASES = 2; // ขั้นต่ำเป็นจำนวน "ลัง"
+const MIN_CASES = 10; // ขั้นต่ำเป็นจำนวน "ลัง"
 const MIN_TOTAL_BAHT = 0; // หรือขั้นต่ำเป็นยอดเงิน (0 = ไม่ใช้)
 const PICKUP_TEXT = "รับด้วยตนเอง";
 
@@ -28,6 +28,9 @@ function NewOrder() {
 
   const [customerPhone, setCustomerPhone] = useState("");
   const [companyPhone, setCompanyPhone] = useState("02-000-0000"); // เปลี่ยนได้
+
+  const [showPopup, setShowPopup] = useState(false);
+  const [popupMessage, setPopupMessage] = useState("");
 
   useEffect(() => {
     let mounted = true;
@@ -85,10 +88,22 @@ function NewOrder() {
           packSize: product.packSize || CASE_SIZE, // จำนวนกระป๋องต่อ 1 ลัง (ถ้ามีในสินค้า)
           pricePerCan: product.price || 0, // เก็บราคา/กระป๋องไว้ด้วย
           price: (product.price || 0) * (product.packSize || CASE_SIZE), // ราคา/ลัง
-          quantity: 1, // จำนวน "ลัง"
+          quantity: 1, // เริ่มต้น 1 ลัง แล้วให้ผู้ใช้กรอกปรับทีหลังได้
         },
       ]);
     }
+  };
+
+  const updateQty = (productId, nextQty) => {
+    const q = Math.max(0, Number.isFinite(nextQty) ? Math.floor(nextQty) : 0);
+    // ถ้าใส่ 0 ให้ลบออกจากตะกร้า
+    if (q === 0) {
+      setCart(cart.filter((i) => i.productId !== productId));
+      return;
+    }
+    setCart(
+      cart.map((i) => (i.productId === productId ? { ...i, quantity: q } : i))
+    );
   };
 
   const updateQuantity = (productId, change) => {
@@ -128,6 +143,12 @@ function NewOrder() {
     }
   };
 
+   const showPopupMessage = (msg) => {
+   setPopupMessage(msg);
+   setShowPopup(true);
+   setTimeout(() => setShowPopup(false), 2500); // ปิดอัตโนมัติใน 2.5 วิ
+ };
+
   const handleSubmit = (e) => {
     e.preventDefault();
     if (cart.length === 0) {
@@ -136,10 +157,11 @@ function NewOrder() {
     }
     // ตรวจขั้นต่ำ (แบบจำนวนลัง)
     const totalCases = cart.reduce((s, i) => s + i.quantity, 0);
-    if (MIN_CASES > 0 && totalCases < MIN_CASES) {
-      alert(`ขั้นต่ำ ${MIN_CASES} ลัง (คุณเลือก ${totalCases} ลัง)`);
+    if (totalCases < MIN_CASES) {
+      showPopupMessage(`ขั้นต่ำ ${MIN_CASES} ลัง (คุณเลือก ${totalCases} ลัง)`);
       return;
     }
+
     // ตรวจขั้นต่ำ (แบบยอดเงิน)
     if (MIN_TOTAL_BAHT > 0 && total < MIN_TOTAL_BAHT) {
       alert(`ยอดสั่งซื้อขั้นต่ำ ฿${MIN_TOTAL_BAHT.toLocaleString()}`);
@@ -264,14 +286,50 @@ function NewOrder() {
                         </div>
                       </div>
                       <div className="cart-item-actions">
-                        <div className="quantity-controls">
+                        <div
+                          className="quantity-controls"
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 8,
+                          }}
+                        >
                           <button
                             onClick={() => updateQuantity(item.productId, -1)}
                             className="quantity-btn"
                           >
                             <Minus size={14} />
                           </button>
-                          <span className="quantity">{item.quantity}</span>
+
+                          <input
+                            type="number"
+                            min={1}
+                            step={1}
+                            value={item.quantity}
+                            onChange={(e) =>
+                              setCart((prev) =>
+                                prev.map((p) =>
+                                  p.productId === item.productId
+                                    ? {
+                                        ...p,
+                                        quantity: Math.max(
+                                          1,
+                                          Number(e.target.value) || 1
+                                        ),
+                                      }
+                                    : p
+                                )
+                              )
+                            }
+                            style={{
+                              width: 70,
+                              textAlign: "center",
+                              padding: "4px 6px",
+                              border: "1px solid #ccc",
+                              borderRadius: 6,
+                            }}
+                          />
+
                           <button
                             onClick={() => updateQuantity(item.productId, 1)}
                             className="quantity-btn"
@@ -279,6 +337,7 @@ function NewOrder() {
                             <Plus size={14} />
                           </button>
                         </div>
+
                         <button
                           onClick={() => removeFromCart(item.productId)}
                           className="remove-btn"
@@ -355,9 +414,7 @@ function NewOrder() {
                         <input
                           type="checkbox"
                           checked={isPickup}
-                          onChange={(e) =>
-                            handleTogglePickup(e.target.checked)
-                          }
+                          onChange={(e) => handleTogglePickup(e.target.checked)}
                         />
                         รับด้วยตนเอง
                       </label>
@@ -398,6 +455,13 @@ function NewOrder() {
           </div>
         </div>
       </div>
+      {showPopup && (
+  <div className="popup-overlay">
+    <div className="popup-box">
+      <p>{popupMessage}</p>
+    </div>
+  </div>
+)}
     </div>
   );
 }
