@@ -3,16 +3,8 @@ const pool = require("../utils/db"); // ใช้ MySQL connection pool
 // GET /api/orders -> ดึงข้อมูลคำสั่งซื้อทั้งหมด
 const getOrders = async (req, res) => {
   try {
-    const [orders] = await pool.query("SELECT * FROM orders ORDER BY createdAt DESC");
-    const [items] = await pool.query("SELECT * FROM order_items");
-
-    // รวมรายการสินค้าเข้ากับคำสั่งซื้อ
-    const result = orders.map((order) => ({
-      ...order,
-      items: items.filter((item) => item.orderId === order.id),
-    }));
-
-    res.json(result);
+    const [orders] = await pool.query("SELECT * FROM orders");
+    res.json(orders);
   } catch (err) {
     console.error("Error fetching orders:", err);
     res.status(500).json({ error: "Failed to fetch orders" });

@@ -39,7 +39,7 @@ function VerifyPayments() {
               <p>
                 ยอดคงเหลือ: ฿
                 {(
-                  (order.totalWithVat || 0) -
+                  (order.totalWithVat || 0) - 
                   (order.depositAmount ?? (order.totalWithVat || 0) * 0.3)
                 ).toLocaleString()}
               </p>

@@ -127,37 +127,30 @@ function Production() {
         </div>
 
         <div className="tab-content">
-          {activeTab === "pending" ? (
-            productionOrders.length > 0 ? (
-              productionOrders.map((order) => (
-                <div key={order.id}>
-                  <h3>คำสั่งซื้อ #{order.id}</h3>
-                  <p>สถานะ: {order.productionStatus}</p>
+          {(() => {
+            const currentTab = tabs.find((t) => t.id === activeTab);
+            const currentOrders = currentTab?.orders ?? [];
+
+            if (currentOrders.length === 0) {
+              return (
+                <div className="empty-state">
+                  <Package size={64} />
+                  <p>ไม่มีคำสั่งซื้อในสถานะนี้</p>
                 </div>
-              ))
-            ) : (
-              <p>ไม่มีคำสั่งซื้อในสถานะนี้</p>
-            )
-          ) : tabs.find((t) => t.id === activeTab)?.orders.length === 0 ? (
-            <div className="empty-state">
-              <Package size={64} />
-              <p>ไม่มีคำสั่งซื้อในสถานะนี้</p>
-            </div>
-          ) : (
-            <div className="orders-grid">
-              {tabs
-                .find((t) => t.id === activeTab)
-                ?.orders.map((order) => (
+              );
+            }
+
+            return (
+              <div className="orders-grid">
+                {currentOrders.map((order) => (
                   <div key={order.id} className="order-card">
                     <div className="order-header">
                       <h3 className="order-id">คำสั่งซื้อ #{order.id}</h3>
-                      <span className="customer-name">
-                        {order.customerName}
-                      </span>
+                      <span className="customer-name">{order.customerName}</span>
                     </div>
 
                     <div className="order-items">
-                      {order.items.map((item, idx) => (
+                      {(order.items ?? []).map((item, idx) => (
                         <div key={idx} className="order-item">
                           <span>{item.productName}</span>
                           <span>x{item.quantity}</span>
@@ -165,35 +158,25 @@ function Production() {
                       ))}
                     </div>
 
+                    {/* ✅ ส่วนนี้คือปุ่มควบคุมสถานะ */}
                     <div className="status-controls">
                       {(() => {
                         const current = order.productionStatus || FLOW[0];
                         const idx = FLOW.indexOf(current);
                         const prev = idx > 0 ? FLOW[idx - 1] : null;
-                        const next =
-                          idx < FLOW.length - 1 ? FLOW[idx + 1] : null;
+                        const next = idx >= 0 && idx < FLOW.length - 1 ? FLOW[idx + 1] : null;
 
-                        // 🔹 เงื่อนไขห้ามย้อนกลับเมื่อถึง "บรรจุกระป๋อง"
                         const canGoBack = prev && current !== "บรรจุกระป๋อง";
 
                         const move = (target) => {
                           if (!target) return;
-
-                          console.log(`Updating production status for order ${order.id} to ${target}`);
-
-                          // เรียกใช้ updateProductionStatus
                           updateProductionStatus(order.id, target);
-
-                          // เพิ่มสินค้าใน stock เมื่อเปลี่ยนเป็น "พร้อมจัดส่ง"
                           if (target === "พร้อมจัดส่ง" && order.productionStatus === "บรรจุกระป๋อง") {
-                            const itemsToUpdate = order.items.map((item) => ({
+                            const itemsToUpdate = (order.items ?? []).map((item) => ({
                               productId: item.productId,
                               quantity: item.quantity,
                             }));
-
-                            console.log("Updating stock for items:", itemsToUpdate);
-
-                            updateStock(itemsToUpdate); // เรียก updateStock พร้อมส่งรายการสินค้า
+                            updateStock(itemsToUpdate);
                           }
                         };
 
@@ -209,11 +192,6 @@ function Production() {
                                 className="status-btn back"
                                 onClick={() => move(prev)}
                                 disabled={!canGoBack}
-                                title={
-                                  !canGoBack
-                                    ? "ไม่สามารถย้อนกลับจากขั้นตอนบรรจุกระป๋องได้"
-                                    : `ย้อนกลับ: ${prev}`
-                                }
                               >
                                 ← ย้อนกลับ
                               </button>
@@ -223,11 +201,6 @@ function Production() {
                                 className="status-btn next"
                                 onClick={() => move(next)}
                                 disabled={!next}
-                                title={
-                                  next
-                                    ? `ไปขั้นต่อไป: ${next}`
-                                    : "ถึงขั้นสุดท้ายแล้ว"
-                                }
                               >
                                 ไปขั้นต่อไป →
                               </button>
@@ -238,8 +211,9 @@ function Production() {
                     </div>
                   </div>
                 ))}
-            </div>
-          )}
+              </div>
+            );
+          })()}
         </div>
       </div>
     </div>

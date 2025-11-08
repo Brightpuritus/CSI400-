@@ -145,7 +145,7 @@ function CustomerOrders() {
               })()}
 
               <div className="order-items">
-                {order.items.map((item, idx) => (
+                {order.items?.map((item, idx) => (
                   <div key={idx} className="order-item">
                     <span>
                       {item.productName} ({item.size})
