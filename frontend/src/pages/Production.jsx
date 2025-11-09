@@ -47,7 +47,7 @@ function Production() {
     const updatedOrders = await ordersRes.json();
 
     // สมมติคุณเก็บ orders ใน useState หรือ context
-    // setOrders(updatedOrders); <-- ไม่ใช้ก็ได้ ถ้าใช้ context provider คุณอาจมี function loader
+    setOrders(updatedOrders); 
   } catch (err) {
     console.error("Error updating order:", err);
   }

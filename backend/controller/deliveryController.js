@@ -18,29 +18,78 @@ const getDeliveries = async (req, res) => {
 const updateDelivery = async (req, res) => {
   const { id, trackingNumber, deliveryStatus } = req.body;
 
-  console.log("Request body:", req.body); // Log ค่าที่ส่งมาจาก Frontend
+  console.log("==== updateDelivery called ====");
+  console.log("Request body:", req.body);
 
+  const conn = await pool.getConnection();
   try {
-    const [result] = await pool.query(
-      `UPDATE orders 
-       SET trackingNumber = ?, deliveryStatus = ?, updatedAt = NOW() 
-       WHERE id = ?`,
-      [trackingNumber, deliveryStatus, id]
-    );
+    await conn.beginTransaction();
 
-    console.log("Update result:", result); // Log ผลลัพธ์จากการ Query
+    // เช็คถ้า deliveryStatus เป็น "จัดส่งสำเร็จ" เปลี่ยน order status เป็น "เสร็จสิ้น"
+    let newOrderStatus = deliveryStatus === "จัดส่งสำเร็จ" ? "เสร็จสิ้น" : null;
+
+    // Update orders
+    let updateQuery = "UPDATE orders SET trackingNumber = ?, deliveryStatus = ?, updatedAt = NOW()";
+    const queryParams = [trackingNumber, deliveryStatus];
+
+    if (newOrderStatus) {
+      updateQuery += ", status = ?";
+      queryParams.push(newOrderStatus);
+    }
+
+    updateQuery += " WHERE id = ?";
+    queryParams.push(id);
+
+    const [result] = await conn.query(updateQuery, queryParams);
+    console.log("Update orders result:", result);
 
     if (result.affectedRows === 0) {
+      await conn.rollback();
+      console.log("Order not found, rollback");
       return res.status(404).json({ error: "Order not found" });
     }
 
-    const [[updatedOrder]] = await pool.query("SELECT * FROM orders WHERE id = ?", [id]);
-    console.log("Updated order:", updatedOrder); // Log ข้อมูลที่อัปเดตแล้ว
+    // ดึง order หลังอัปเดต
+    const [[updatedOrder]] = await conn.query("SELECT * FROM orders WHERE id = ?", [id]);
 
-    res.json(updatedOrder);
+    // ดึง items
+    const [orderItems] = await conn.query(
+      "SELECT productId, quantity, productName, price FROM order_items WHERE orderId = ?",
+      [id]
+    );
+
+    // ลด stock ถ้า deliveryStatus = "กำลังจัดส่ง"
+    if (deliveryStatus === "กำลังจัดส่ง") {
+      console.log("Delivery status is 'กำลังจัดส่ง', decreasing stock...");
+      for (const item of orderItems) {
+        const { productId, quantity } = item;
+
+        const [rows] = await conn.query("SELECT stock FROM products WHERE id = ?", [productId]);
+        if (!rows.length) throw new Error(`Product ${productId} not found`);
+
+        const currentStock = rows[0].stock;
+        const newStock = currentStock - quantity;
+
+        console.log(`Product ${productId}: stock ${currentStock} -> ${newStock}`);
+        if (newStock < 0) throw new Error(`สต๊อกสินค้า ${productId} ไม่พอ`);
+
+        await conn.query("UPDATE products SET stock = ? WHERE id = ?", [newStock, productId]);
+      }
+      console.log("All stock updated successfully");
+    }
+
+    await conn.commit();
+    console.log("Transaction committed");
+
+    // ส่ง response: order + items
+    res.json({ ...updatedOrder, items: orderItems });
   } catch (err) {
-    console.error("Error updating delivery info:", err);
-    res.status(500).json({ error: "Failed to update delivery info" });
+    await conn.rollback();
+    console.error("Error updating delivery info, rollback:", err);
+    res.status(500).json({ error: "Failed to update delivery info", message: err.message });
+  } finally {
+    conn.release();
+    console.log("Connection released");
   }
 };
 

@@ -22,8 +22,9 @@ function Delivery() {
       alert("กรุณากรอกเลขพัสดุ");
       return;
     }
+  
     try {
-      // อัปเดตข้อมูลบน backend
+      // เรียก API backend เพื่ออัปเดตออเดอร์และสต๊อก
       const response = await fetch("http://localhost:5000/api/delivery", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
@@ -38,20 +39,25 @@ function Delivery() {
   
       const updatedOrder = await response.json();
   
-      // อัปเดต state ของ orders ทันที
+      // อัปเดต state orders ทันที
       setOrders((prevOrders) =>
-        prevOrders.map((o) =>
-          o.id === updatedOrder.id ? updatedOrder : o
-        )
+        prevOrders.map((o) => (o.id === updatedOrder.id ? updatedOrder : o))
       );
   
       alert("อัปเดตข้อมูลการจัดส่งสำเร็จ");
-      setSelectedOrder(null); // ปิด modal
+  
+      // ปิด modal
+      setSelectedOrder(null);
+  
+      // เคลียร์เลขพัสดุหลังอัปเดต
+      setTrackingNumber("");
     } catch (err) {
       console.error("Error updating delivery info:", err);
       alert("เกิดข้อผิดพลาดในการอัปเดตข้อมูลการจัดส่ง");
     }
   };
+  
+  
   
 
   const openDialog = (order) => {

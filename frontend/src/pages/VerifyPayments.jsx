@@ -4,7 +4,7 @@ import { useDataStore } from "../context/DataStore";
 import "./VerifyPayments.css";
 
 function VerifyPayments() {
-  const { orders, confirmPayment } = useDataStore();
+  const { orders, confirmPayment, setOrders } = useDataStore();
 
   // ✅ รวมออเดอร์ที่ยังไม่ได้จ่ายหรือจ่ายมัดจำแล้ว
   const pendingOrders = orders.filter((order) =>
@@ -13,6 +13,7 @@ function VerifyPayments() {
 
   const handleConfirm = (orderId, paymentStatus) => {
     confirmPayment(orderId, paymentStatus);
+    setOrders(updatedOrders); // ดึง order list ใหม่จาก backend
   };
 
   return (

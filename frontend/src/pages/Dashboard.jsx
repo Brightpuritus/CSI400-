@@ -55,7 +55,7 @@ export default function Dashboard() {
   // Product sales data
   const productSales = {}
   filteredOrders.forEach((order) => {
-    order.items.forEach((item) => {
+    (order.items || []).forEach((item) => {
       if (!productSales[item.productName]) {
         productSales[item.productName] = { quantity: 0, revenue: 0 }
       }
@@ -63,6 +63,7 @@ export default function Dashboard() {
       productSales[item.productName].revenue += item.price * item.quantity
     })
   })
+  
 
   // Export to CSV
   const exportToCSV = () => {
