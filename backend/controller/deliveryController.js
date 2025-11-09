@@ -18,19 +18,25 @@ const getDeliveries = async (req, res) => {
 const updateDelivery = async (req, res) => {
   const { id, trackingNumber, deliveryStatus } = req.body;
 
+  console.log("Request body:", req.body); // Log ค่าที่ส่งมาจาก Frontend
+
   try {
     const [result] = await pool.query(
       `UPDATE orders 
-       SET trackingNumber = ?, deliveryStatus = ? 
+       SET trackingNumber = ?, deliveryStatus = ?, updatedAt = NOW() 
        WHERE id = ?`,
       [trackingNumber, deliveryStatus, id]
     );
+
+    console.log("Update result:", result); // Log ผลลัพธ์จากการ Query
 
     if (result.affectedRows === 0) {
       return res.status(404).json({ error: "Order not found" });
     }
 
     const [[updatedOrder]] = await pool.query("SELECT * FROM orders WHERE id = ?", [id]);
+    console.log("Updated order:", updatedOrder); // Log ข้อมูลที่อัปเดตแล้ว
+
     res.json(updatedOrder);
   } catch (err) {
     console.error("Error updating delivery info:", err);

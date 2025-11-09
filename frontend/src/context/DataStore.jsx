@@ -234,17 +234,23 @@ export function DataStoreProvider({ children }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ id: orderId, trackingNumber, deliveryStatus }),
       });
-  
+
       if (!response.ok) {
         throw new Error("Failed to update delivery info");
       }
-  
+
       const updatedOrder = await response.json();
-      setOrders((prevOrders) =>
-        prevOrders.map((order) => (order.id === orderId ? updatedOrder : order))
-      );
+
+      // ดึงข้อมูลใหม่จาก Backend เพื่ออัปเดต State
+      const ordersResponse = await fetch("http://localhost:5000/api/orders");
+      if (!ordersResponse.ok) {
+        throw new Error("Failed to fetch updated orders");
+      }
+      const updatedOrders = await ordersResponse.json();
+      setOrders(updatedOrders);
     } catch (error) {
       console.error("Error updating delivery info:", error);
+      throw error;
     }
   };
 
@@ -335,7 +341,8 @@ export function DataStoreProvider({ children }) {
         setUsers,
         createProduct,
         updateProduct,
-        deleteProduct
+        deleteProduct,
+        setOrders, // เพิ่ม setOrders ใน Provider
       }}
     >
       {children}

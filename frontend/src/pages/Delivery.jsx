@@ -6,10 +6,10 @@ import { Truck, Package, CheckCircle, X } from "lucide-react";
 import "./Delivery.css";
 
 function Delivery() {
-  const { orders, updateDeliveryInfo, decreaseStock } = useDataStore(); // ถ้าจะใช้แยกส่งเป็นชิ้น ค่อยเปิด updateItemDelivery
+  const { orders, updateDeliveryInfo, decreaseStock, setOrders } = useDataStore(); // ถ้าจะใช้แยกส่งเป็นชิ้น ค่อยเปิด updateItemDelivery
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [trackingNumber, setTrackingNumber] = useState("");
-  const [deliveryStatus, setDeliveryStatus] = useState("กำลังจัดส่ง");
+  const [deliveryStatus, setDeliveryStatus] = useState("");
 
   const deliveryOrders = {
     ready: orders?.filter((o) => o.deliveryStatus === "พร้อมจัดส่ง") || [],
@@ -22,31 +22,37 @@ function Delivery() {
       alert("กรุณากรอกเลขพัสดุ");
       return;
     }
-
     try {
-      // อัปเดตสถานะการจัดส่ง
-      updateDeliveryInfo(selectedOrder.id, trackingNumber, deliveryStatus);
-
-      // ลดจำนวนสินค้าใน stock เมื่อสถานะเป็น "กำลังจัดส่ง"
-      if (deliveryStatus === "กำลังจัดส่ง") {
-        const itemsToDecrease = selectedOrder.items.map((item) => ({
-          productId: item.productId,
-          quantity: -Math.abs(item.quantity), // เปลี่ยน quantity ให้เป็นค่าลบ
-        }));
-
-        console.log("Decreasing stock for items:", itemsToDecrease);
-
-        await decreaseStock(itemsToDecrease); // เรียก decreaseStock พร้อมส่งรายการสินค้า
-      }
-
-      setSelectedOrder(null);
-      setTrackingNumber("");
-      setDeliveryStatus("กำลังจัดส่ง");
+      // อัปเดตข้อมูลบน backend
+      const response = await fetch("http://localhost:5000/api/delivery", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id: selectedOrder.id,
+          trackingNumber,
+          deliveryStatus,
+        }),
+      });
+  
+      if (!response.ok) throw new Error("Failed to update delivery info");
+  
+      const updatedOrder = await response.json();
+  
+      // อัปเดต state ของ orders ทันที
+      setOrders((prevOrders) =>
+        prevOrders.map((o) =>
+          o.id === updatedOrder.id ? updatedOrder : o
+        )
+      );
+  
+      alert("อัปเดตข้อมูลการจัดส่งสำเร็จ");
+      setSelectedOrder(null); // ปิด modal
     } catch (err) {
-      console.error("Error updating delivery:", err);
+      console.error("Error updating delivery info:", err);
       alert("เกิดข้อผิดพลาดในการอัปเดตข้อมูลการจัดส่ง");
     }
   };
+  
 
   const openDialog = (order) => {
     setSelectedOrder(order);
