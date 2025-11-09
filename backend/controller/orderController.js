@@ -3,8 +3,19 @@ const pool = require("../utils/db"); // ใช้ MySQL connection pool
 // GET /api/orders -> ดึงข้อมูลคำสั่งซื้อทั้งหมด
 const getOrders = async (req, res) => {
   try {
+    // ดึงข้อมูลคำสั่งซื้อทั้งหมด
     const [orders] = await pool.query("SELECT * FROM orders");
-    res.json(orders);
+
+    // ดึงข้อมูลรายการสินค้าในคำสั่งซื้อทั้งหมด
+    const [items] = await pool.query("SELECT * FROM order_items");
+
+    // รวมรายการสินค้าเข้ากับคำสั่งซื้อแต่ละรายการ
+    const ordersWithItems = orders.map((order) => ({
+      ...order,
+      items: items.filter((item) => item.orderId === order.id), // รวมเฉพาะรายการสินค้าที่ตรงกับ orderId
+    }));
+
+    res.json(ordersWithItems);
   } catch (err) {
     console.error("Error fetching orders:", err);
     res.status(500).json({ error: "Failed to fetch orders" });
@@ -172,28 +183,67 @@ const confirmPayment = async (req, res) => {
   }
 };
 
+// PUT /api/orders/:id
 const updateOrderStatus = async (req, res) => {
-  const { id, productionStatus } = req.body;
+  const { id } = req.params;             // <- ใช้ params แทน body
+  const { productionStatus } = req.body; // <- productionStatus จาก body
+
+  if (!productionStatus) {
+    return res.status(400).json({ error: "Missing productionStatus" });
+  }
+
+  const conn = await pool.getConnection();
 
   try {
-    const [result] = await pool.query(
-      `UPDATE orders SET productionStatus = ?, deliveryStatus = CASE 
-        WHEN ? = 'พร้อมจัดส่ง' THEN 'พร้อมจัดส่ง' 
-        ELSE deliveryStatus END 
-      WHERE id = ?`,
+    await conn.beginTransaction();
+
+    // อัปเดต productionStatus + deliveryStatus
+    const [updateResult] = await conn.query(
+      `UPDATE orders
+       SET productionStatus = ?,
+           deliveryStatus = IF(? = 'พร้อมจัดส่ง', 'พร้อมจัดส่ง', deliveryStatus)
+       WHERE id = ?`,
       [productionStatus, productionStatus, id]
     );
 
-    if (result.affectedRows === 0) {
+    if (updateResult.affectedRows === 0) {
+      await conn.rollback();
       return res.status(404).json({ error: "Order not found" });
     }
 
-    const [[updatedOrder]] = await pool.query("SELECT * FROM orders WHERE id = ?", [id]);
+    // ดึง order ล่าสุด
+    const [[updatedOrder]] = await conn.query(
+      "SELECT * FROM orders WHERE id = ?",
+      [id]
+    );
+
+    // ลด stock ถ้า productionStatus = "พร้อมจัดส่ง"
+    if (updatedOrder.productionStatus === "พร้อมจัดส่ง") {
+      const [items] = await conn.query(
+        "SELECT productId, quantity FROM order_items WHERE orderId = ?",
+        [id]
+      );
+
+      for (const item of items) {
+        if (item.productId && item.quantity > 0) {
+          await conn.query(
+            "UPDATE products SET stock = stock + ? WHERE id = ?",
+            [item.quantity, item.productId]
+          );
+        }
+      }
+    }
+
+    await conn.commit();
     res.json(updatedOrder);
   } catch (err) {
-    console.error("Error updating order status:", err);
-    res.status(500).json({ error: "Failed to update order status" });
+    await conn.rollback();
+    console.error("Error updating order and stock:", err);
+    res.status(500).json({ error: "Failed to update order and stock" });
+  } finally {
+    conn.release();
   }
 };
+
 
 module.exports = { getOrders, addOrder, updateOrder, updatePaymentStatus, confirmPayment, updateOrderStatus };

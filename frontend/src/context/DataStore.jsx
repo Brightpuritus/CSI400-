@@ -126,20 +126,28 @@ export function DataStoreProvider({ children }) {
     return newOrder
   }
 
-  const updateOrderStatus = async (orderId, status) => {
+  // อัปเดต productionStatus + deliveryStatus + stock
+  const updateOrderStatus = async (orderId, productionStatus) => {
     try {
-      const response = await fetch(`http://localhost:5000/api/orders/${orderId}`, {
+      const res = await fetch(`http://localhost:5000/api/orders/${order.id}/status`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status }),
+        body: JSON.stringify({ productionStatus: "พร้อมจัดส่ง" }),
       });
-      if (!response.ok) throw new Error("Failed to update order status");
-      const updatedOrder = await response.json();
-      setOrders((prevOrders) =>
-        prevOrders.map((order) => (order.id === orderId ? updatedOrder : order))
+
+      if (!res.ok) throw new Error("Failed to update order status");
+
+      const updatedOrder = await res.json();
+
+      // อัปเดต frontend state
+      setOrders((prev) =>
+        prev.map((o) => (o.id === orderId ? updatedOrder : o))
       );
+
+      return updatedOrder;
     } catch (err) {
       console.error("Error updating order status:", err);
+      throw err;
     }
   };
 
