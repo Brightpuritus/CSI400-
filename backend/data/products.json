@@ -1,9 +1,13 @@
 [
   {
     "id": "1",
-    "name": "ปลาทูน่าในน้ำมัน",
-    "price": 45,
-    "stock": 130
+    "name": "ปลา",
+    "price": 10,
+    "stock": 111,
+    "imageUrl": "https://f.ptcdn.info/897/027/000/1422446144-IMG1935JPG-o.jpg",
+    "packSize": 0,
+    "description": "",
+    "updatedAt": "2025-11-09T15:56:20.682Z"
   },
   {
     "id": "1762101863413",

@@ -29,31 +29,29 @@ function Production() {
 
   // move function
   const move = async (order, target) => {
-    if (!target) return;
-  
-    try {
-      const response = await fetch(
-        `http://localhost:5000/api/orders/${order.id}/status`,
-        {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ productionStatus: target }),
-        }
-      );
-  
-      if (!response.ok) throw new Error("Failed to update order");
-  
-      const updatedOrder = await response.json();
-      console.log("Updated order:", updatedOrder);
-  
-      // อัปเดต state ให้ React render ใหม่ทันที
-      setOrders((prev) =>
-        prev.map((o) => (o.id === updatedOrder.id ? updatedOrder : o))
-      );
-    } catch (error) {
-      console.error("Error updating order:", error);
-    }
-  };
+  try {
+    const response = await fetch(
+      `http://localhost:5000/api/orders/${order.id}/status`,
+      {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ productionStatus: target }),
+      }
+    );
+    if (!response.ok) throw new Error("Failed to update order");
+
+    console.log("Order updated");
+
+    // ดึง order list ใหม่จาก backend
+    const ordersRes = await fetch("http://localhost:5000/api/orders");
+    const updatedOrders = await ordersRes.json();
+
+    // สมมติคุณเก็บ orders ใน useState หรือ context
+    // setOrders(updatedOrders); <-- ไม่ใช้ก็ได้ ถ้าใช้ context provider คุณอาจมี function loader
+  } catch (err) {
+    console.error("Error updating order:", err);
+  }
+};
 
   return (
     <div className="page-container">
