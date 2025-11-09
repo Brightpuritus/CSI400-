@@ -198,7 +198,7 @@ function NewOrder() {
       paymentStatus: "ยังไม่ได้ชำระเงิน", // เพิ่มสถานะเริ่มต้น
       productionStatus: "รอเริ่มผลิต",
     });
-
+    
     alert("สั่งซื้อสำเร็จ!");
     navigate("/customer/orders");
   };

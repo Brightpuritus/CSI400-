@@ -27,6 +27,7 @@ const addOrder = async (req, res) => {
   const {
     customerId,
     customerName,
+    customerPhone = "", // <-- เพิ่มตรงนี้
     items = [],
     subtotal = 0,
     vat = 0,
@@ -47,12 +48,13 @@ const addOrder = async (req, res) => {
     // เพิ่มคำสั่งซื้อใหม่ในตาราง `orders`
     const [orderResult] = await conn.query(
       `INSERT INTO orders 
-        (customerId, customerName, subtotal, vat, totalWithVat, deliveryDate, deliveryAddress, 
+        (customerId, customerName, customerPhone, subtotal, vat, totalWithVat, deliveryDate, deliveryAddress, 
          productionStatus, paymentStatus, trackingNumber, deliveryStatus, status, createdAt, updatedAt)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())`,
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())`,
       [
         customerId,
         customerName,
+        customerPhone, // <-- เพิ่มตรงนี้
         subtotal,
         vat,
         totalWithVat,
@@ -85,6 +87,7 @@ const addOrder = async (req, res) => {
       id: orderId,
       customerId,
       customerName,
+      customerPhone, // ✅ เพิ่มตรงนี้
       items,
       subtotal,
       vat,
@@ -164,24 +167,41 @@ const updatePaymentStatus = async (req, res) => {
 // PUT /api/orders/:id/confirm-payment -> ยืนยันการชำระเงิน
 const confirmPayment = async (req, res) => {
   const { id } = req.params;
+  const { paymentStatus } = req.body; // ✅ รับสถานะจากฝั่ง client
 
+  const conn = await pool.getConnection();
   try {
-    const [result] = await pool.query(
-      `UPDATE orders SET paymentStatus = 'ชำระทั้งหมดแล้ว' WHERE id = ?`,
-      [id]
+    await conn.beginTransaction();
+
+    // ✅ อัปเดตสถานะการชำระเงินตามที่กดจริง
+    const [result] = await conn.query(
+      `UPDATE orders SET paymentStatus = ? WHERE id = ?`,
+      [paymentStatus, id]
     );
 
     if (result.affectedRows === 0) {
+      await conn.rollback();
       return res.status(404).json({ error: "Order not found" });
     }
 
-    const [[updatedOrder]] = await pool.query("SELECT * FROM orders WHERE id = ?", [id]);
-    res.json(updatedOrder);
+    // ✅ ดึงข้อมูล order + items กลับไปให้ frontend
+    const [[order]] = await conn.query(`SELECT * FROM orders WHERE id = ?`, [id]);
+    const [items] = await conn.query(`SELECT * FROM order_items WHERE orderId = ?`, [id]);
+    order.items = items;
+
+    await conn.commit();
+    res.json(order);
   } catch (err) {
+    await conn.rollback();
     console.error("Confirm payment error:", err);
     res.status(500).json({ error: "Failed to confirm payment" });
+  } finally {
+    conn.release();
   }
 };
+
+
+
 
 // PUT /api/orders/:id
 const updateOrderStatus = async (req, res) => {

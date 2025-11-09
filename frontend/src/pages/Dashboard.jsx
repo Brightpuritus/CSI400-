@@ -20,12 +20,16 @@ export default function Dashboard() {
 
   if (!user) return null
 
-  const completedOrders = orders.filter((o) => o.status === "เสร็จสิ้น")
+  const completedOrders = orders.filter((o) => o.deliveryStatus === "จัดส่งสำเร็จ")
 
-  const totalSales = completedOrders.reduce((sum, order) => sum + (order.totalWithVat || 0), 0);
-  const totalVAT = completedOrders.reduce((sum, order) => sum + (order.vat || 0), 0);
+  const totalSales = completedOrders.reduce((sum, order) => sum + parseFloat(order.totalWithVat || 0), 0);
+  const totalVAT = completedOrders.reduce((sum, order) => sum + parseFloat(order.vat || 0), 0);
   const totalRevenue = totalSales - totalVAT;
   const totalOrders = completedOrders.length
+
+  console.log("Total Sales:", totalSales);
+  console.log("Total VAT:", totalVAT);
+  console.log("Total Revenue:", totalRevenue);
 
   // Filter by date range
   const filterOrdersByDate = (orders) => {

@@ -259,24 +259,44 @@ export function DataStoreProvider({ children }) {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ paymentStatus, paymentProof }),
-    })
-    const updatedOrder = await response.json()
-    setOrders((prevOrders) =>
-      prevOrders.map((order) => (order.id === orderId ? updatedOrder : order))
-    )
+    });
+
+    if (!response.ok) {
+      throw new Error("Failed to update payment status");
+    }
+
+    // ดึงข้อมูลคำสั่งซื้อใหม่จาก Backend
+    const updatedOrdersResponse = await fetch("http://localhost:5000/api/orders");
+    if (!updatedOrdersResponse.ok) {
+      throw new Error("Failed to fetch updated orders");
+    }
+
+    const updatedOrders = await updatedOrdersResponse.json();
+    setOrders(updatedOrders);
   }
 
   const confirmPayment = async (orderId, paymentStatus) => {
-    const response = await fetch(`http://localhost:5000/api/orders/${orderId}/confirm-payment`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ paymentStatus }),
-    })
-    const updatedOrder = await response.json()
-    setOrders((prevOrders) =>
-      prevOrders.map((order) => (order.id === orderId ? updatedOrder : order))
-    )
-  }
+    try {
+      const response = await fetch(`http://localhost:5000/api/orders/${orderId}/confirm-payment`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ paymentStatus }), // ✅ ส่งสถานะไป backend
+      });
+  
+      if (!response.ok) throw new Error("Failed to confirm payment");
+  
+      const updatedOrder = await response.json();
+  
+      // อัปเดตข้อมูลใน state orders
+      setOrders((prevOrders) =>
+        prevOrders.map((order) =>
+          order.id === orderId ? updatedOrder : order
+        )
+      );
+    } catch (err) {
+      console.error("Error confirming payment:", err);
+    }
+  };
 
   async function updateUserRole(email, newRole) {
     try {

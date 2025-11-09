@@ -29,9 +29,9 @@ function CustomerOrders() {
     return colors[status] || "status-pending";
   };
 
-  const handlePayment = (order, targetStatus) => {
+  const handlePayment = (order) => {
     const proof = paymentProof ? URL.createObjectURL(paymentProof) : null;
-    updatePaymentStatus(order.id, targetStatus, proof);
+    updatePaymentStatus(order.id, order.paymentStatus, proof); // บันทึกหลักฐานโดยไม่เปลี่ยนสถานะ
     setSelectedOrder(null);
     setPaymentProof(null);
   };
@@ -68,7 +68,7 @@ function CustomerOrders() {
                 <div className="order-detail-item">
                   <Calendar size={16} />
                   <span>
-                    {new Date(order.orderDate).toLocaleDateString("th-TH")}
+                  <span>สั่งซื้อเมื่อ: {order.createdAt || "-"}</span>
                   </span>
                 </div>
                 <div className="order-detail-item">
@@ -148,7 +148,7 @@ function CustomerOrders() {
                 {order.items?.map((item, idx) => (
                   <div key={idx} className="order-item">
                     <span>
-                      {item.productName} ({item.size})
+                      {item.productName}
                     </span>
                     <span>x{item.quantity}</span>
                   </div>
