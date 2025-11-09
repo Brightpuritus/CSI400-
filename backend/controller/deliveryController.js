@@ -18,41 +18,23 @@ const getDeliveries = async (req, res) => {
 const updateDelivery = async (req, res) => {
   const { id, trackingNumber, deliveryStatus } = req.body;
 
-  if (!id || !deliveryStatus) {
-    return res.status(400).json({ error: "Missing required fields" });
-  }
-
-  const conn = await pool.getConnection();
   try {
-    await conn.beginTransaction();
-
-    // อัปเดตสถานะการจัดส่งในตาราง `orders`
-    const [result] = await conn.query(
+    const [result] = await pool.query(
       `UPDATE orders 
-       SET trackingNumber = ?, deliveryStatus = ?, 
-           status = CASE WHEN ? = 'จัดส่งสำเร็จ' THEN 'เสร็จสิ้น' ELSE status END,
-           productionStatus = CASE WHEN ? = 'จัดส่งสำเร็จ' THEN NULL ELSE productionStatus END,
-           updatedAt = NOW()
+       SET trackingNumber = ?, deliveryStatus = ? 
        WHERE id = ?`,
-      [trackingNumber, deliveryStatus, deliveryStatus, deliveryStatus, id]
+      [trackingNumber, deliveryStatus, id]
     );
 
     if (result.affectedRows === 0) {
-      await conn.rollback();
       return res.status(404).json({ error: "Order not found" });
     }
 
-    // ดึงข้อมูลคำสั่งซื้อที่อัปเดตแล้ว
-    const [[updatedOrder]] = await conn.query("SELECT * FROM orders WHERE id = ?", [id]);
-
-    await conn.commit();
+    const [[updatedOrder]] = await pool.query("SELECT * FROM orders WHERE id = ?", [id]);
     res.json(updatedOrder);
   } catch (err) {
-    await conn.rollback();
-    console.error("Error updating delivery:", err);
-    res.status(500).json({ error: "Failed to update delivery" });
-  } finally {
-    conn.release();
+    console.error("Error updating delivery info:", err);
+    res.status(500).json({ error: "Failed to update delivery info" });
   }
 };
 

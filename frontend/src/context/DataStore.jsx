@@ -233,20 +233,20 @@ export function DataStoreProvider({ children }) {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ id: orderId, trackingNumber, deliveryStatus }),
-      })
-
+      });
+  
       if (!response.ok) {
-        throw new Error("Failed to update delivery info")
+        throw new Error("Failed to update delivery info");
       }
-
-      const updatedOrder = await response.json()
+  
+      const updatedOrder = await response.json();
       setOrders((prevOrders) =>
         prevOrders.map((order) => (order.id === orderId ? updatedOrder : order))
-      )
+      );
     } catch (error) {
-      console.error("Error updating delivery info:", error)
+      console.error("Error updating delivery info:", error);
     }
-  }
+  };
 
   const updatePaymentStatus = async (orderId, paymentStatus, paymentProof) => {
     const response = await fetch(`http://localhost:5000/api/orders/${orderId}/payment`, {
