@@ -48,6 +48,139 @@ function CustomerOrders() {
     }
   };
 
+  // เปิด "ใบเสร็จ" ที่สวยขึ้นและพิมพ์ได้
+  const openReceipt = (order) => {
+    if (!order) return alert("ไม่พบข้อมูลคำสั่งซื้อ");
+
+    const total = Number(order.totalWithVat || 0);
+    const deposit = Number(order.depositAmount ?? total * 0.3);
+    const vat = Number(order.vat ?? 0);
+    const items = order.items || [];
+
+    const rowsHtml = items
+      .map((it, i) => {
+        const qty = Number(it.quantity || 0);
+        const price = Number(it.price || 0);
+        const line = qty * price;
+        return `<tr>
+          <td class="c-index">${i + 1}</td>
+          <td class="c-name">${it.productName || "-"}</td>
+          <td class="c-qty">${qty}</td>
+          <td class="c-price">฿${price.toLocaleString()}</td>
+          <td class="c-line">฿${line.toLocaleString()}</td>
+        </tr>`;
+      })
+      .join("");
+
+    const html = `
+      <!doctype html>
+      <html>
+      <head>
+        <meta charset="utf-8" />
+        <title>ใบเสร็จคำสั่งซื้อ #${order.id}</title>
+        <style>
+          :root{
+            --bg:#f6f8fb; --card:#ffffff; --muted:#6b7280; --accent:#0b66f0;
+            --text:#0f172a; --panel:#f8fafc;
+          }
+          body{font-family: Inter, Roboto, Arial, sans-serif; margin:24px; color:var(--text); background:var(--bg);}
+          .wrap{max-width:900px;margin:0 auto;background:var(--card);padding:24px;border-radius:12px;box-shadow:0 10px 30px rgba(15,23,42,0.06);}
+          header{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:18px}
+          .shop{font-weight:700;font-size:18px}
+          .meta{color:var(--muted);font-size:13px}
+          table{width:100%;border-collapse:collapse;margin-top:12px}
+          thead th{background:var(--panel);padding:10px;border-bottom:1px solid #eef2f7;text-align:left;font-size:13px}
+          tbody td{padding:10px;border-bottom:1px solid #f3f6f9;font-size:13px;vertical-align:middle}
+          .c-index{width:40px;text-align:center;color:var(--muted)}
+          .c-qty{width:80px;text-align:center}
+          .c-price,.c-line{text-align:right;width:120px}
+          .totals{margin-top:12px;display:flex;justify-content:flex-end}
+          .totals .box{min-width:320px;padding:14px;border-radius:10px;background:#fbfdff;border:1px solid #eef2f7}
+          .totals .row{display:flex;justify-content:space-between;margin-bottom:8px;color:var(--muted)}
+          .totals .row strong{color:var(--text)}
+          .status{margin-top:12px;color:var(--muted);font-size:13px}
+          .print-btn{
+            position:fixed;right:22px;top:22px;background:linear-gradient(90deg,var(--accent),#1e90ff);color:#fff;border:none;padding:10px 14px;border-radius:10px;cursor:pointer;box-shadow:0 10px 30px rgba(11,102,240,0.12);font-weight:700;
+          }
+          .note{margin-top:18px;color:var(--muted);font-size:13px}
+          @media print{
+            .print-btn{display:none}
+            body{background:#fff}
+            .wrap{box-shadow:none;border:none;margin:0;padding:0}
+          }
+        </style>
+      </head>
+      <body>
+        <button class="print-btn" onclick="window.print()">พิมพ์</button>
+        <div class="wrap">
+          <header>
+            <div>
+              <div class="shop">ใบเสร็จการสั่งซื้อ — ร้านของคุณ</div>
+              <div class="meta">เลขที่คำสั่งซื้อ: <strong>#${order.id}</strong></div>
+              <div class="meta">วันที่: ${order.createdAt || "-"}</div>
+            </div>
+            <div style="text-align:right">
+              <div><strong>ชื่อลูกค้า</strong></div>
+              <div class="meta">${order.customerName || "-"}</div>
+              <div style="height:8px"></div>
+              <div><strong>ที่อยู่จัดส่ง</strong></div>
+              <div class="meta">${order.deliveryAddress || "-"}</div>
+            </div>
+          </header>
+
+          <table>
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>สินค้า</th>
+                <th>จำนวน</th>
+                <th>ราคาต่อหน่วย</th>
+                <th>รวม</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${rowsHtml}
+            </tbody>
+          </table>
+
+          <div class="totals">
+            <div class="box">
+              <div class="row"><span>รวมย่อย</span><strong>฿${(total - vat).toLocaleString()}</strong></div>
+              <div class="row"><span>VAT</span><strong>฿${vat.toLocaleString()}</strong></div>
+              <div class="row"><span>ยอดรวม</span><strong>฿${total.toLocaleString()}</strong></div>
+              <div class="row"><span>มัดจำ</span><strong>฿${deposit.toLocaleString()}</strong></div>
+              <div class="row" style="font-size:16px"><span>ยอดที่ต้องชำระ</span><strong>฿${Math.max(0, total - deposit).toLocaleString()}</strong></div>
+            </div>
+          </div>
+
+          <div class="status">สถานะการชำระ: <strong>${order.paymentStatus || "-"}</strong></div>
+          <div class="note">หมายเหตุ: เก็บใบเสร็จฉบับนี้ไว้เป็นหลักฐานการสั่งซื้อ หากต้องการข้อมูลเพิ่มเติม ติดต่อฝ่ายบริการลูกค้า</div>
+        </div>
+
+        <script>
+          // พยายามโฟกัสแล้วเรียก print (จะไม่บังคับถ้าเบราว์เซอร์บล็อก)
+          try {
+            window.focus();
+            // เปิด dialog อัตโนมัติ (บางเบราว์เซอร์อาจบล็อก)
+            // setTimeout(() => window.print(), 300);
+          } catch(e){}
+        </script>
+      </body>
+      </html>
+    `;
+
+    try {
+      const win = window.open("", "_blank");
+      if (!win) return alert("เบราว์เซอร์บล็อกการเปิดหน้าใหม่ ลองคลิกขวา → เปิดในแท็บใหม่");
+      win.document.open();
+      win.document.write(html);
+      win.document.close();
+    } catch (err) {
+      console.error("openReceipt error:", err);
+      alert("ไม่สามารถเปิดใบเสร็จได้ ลองรีเฟรชหน้าแล้วลองใหม่");
+    }
+  };
+
   const userOrders =
     user.role === "admin"
       ? orders
@@ -239,6 +372,22 @@ function CustomerOrders() {
                         ดูหลักฐานการโอน
                       </button>
                     )}
+
+                    {/* ปุ่มดูใบเสร็จ (สร้างจากข้อมูลคำสั่งซื้อในฝั่ง client) */}
+                    <button
+                      onClick={() => openReceipt(order)}
+                      style={{
+                        marginLeft: 12,
+                        background: "none",
+                        border: "none",
+                        color: "#0b66f0",
+                        textDecoration: "underline",
+                        cursor: "pointer",
+                        padding: 0,
+                      }}
+                    >
+                      ดูใบเสร็จ
+                    </button>
                   </>
                 ) : (
                   order.paymentProof && (
