@@ -13,6 +13,41 @@ function CustomerOrders() {
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [paymentProof, setPaymentProof] = useState(null);
 
+  // ช่วยแปลง path ที่เก็บใน DB เป็น URL เต็ม (หรือใช้ blob: ได้เลย)
+  const toFullUrl = (u) => {
+    if (!u) return null;
+    return u.startsWith("http") || u.startsWith("blob:") ? u : `http://localhost:5000${u}`;
+  };
+
+  // เปิดหลักฐานในแท็บใหม่ (รองรับ blob: และ relative path)
+  const openProof = (rawUrl) => {
+    if (!rawUrl) {
+      alert("ไม่มีหลักฐานการโอนในระบบ");
+      return;
+    }
+    const url = toFullUrl(rawUrl);
+    try {
+      // พยายามเปิดหน้าต่างใหม่ก่อน (user-initiated click => ไม่ถูกบล็อกโดยปกติ)
+      const win = window.open();
+      if (win) {
+        // กำหนด location ของหน้าต่างที่สร้างขึ้น
+        win.opener = null;
+        win.location = url;
+        return;
+      }
+      // fallback: สร้าง <a> ชั่วคราว แล้วคลิก
+      const a = document.createElement("a");
+      a.href = url;
+      a.target = "_blank";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+    } catch (err) {
+      console.error("openProof error:", err);
+      alert("ไม่สามารถเปิดหลักฐานได้ — ลองคลิกขวาแล้วเปิดในแท็บใหม่");
+    }
+  };
+
   const userOrders =
     user.role === "admin"
       ? orders
@@ -169,39 +204,58 @@ function CustomerOrders() {
               )}
 
               <div className="payment-actions">
-                {order.paymentStatus === "ยังไม่ได้ชำระเงิน" && (
-                  <button
-                    onClick={() =>
-                      setSelectedOrder({
-                        ...order,
-                        targetStatus: "ชำระมัดจำแล้ว",
-                      })
-                    }
-                  >
-                    อัปโหลดหลักฐานการโอนเงิน (มัดจำ 30%)
-                  </button>
-                )}
+                {/* แสดงปุ่มอัปโหลดจนกว่า paymentStatus จะเป็น "ชำระทั้งหมดแล้ว" */}
+                {order.paymentStatus !== "ชำระทั้งหมดแล้ว" ? (
+                  <>
+                    <button
+                      onClick={() =>
+                        setSelectedOrder({
+                          ...order,
+                          targetStatus:
+                            order.paymentStatus === "ชำระมัดจำแล้ว"
+                              ? "ชำระทั้งหมดแล้ว"
+                              : "ชำระมัดจำแล้ว",
+                        })
+                      }
+                    >
+                      {order.paymentStatus === "ชำระมัดจำแล้ว"
+                        ? "อัปโหลดหลักฐานชำระ “ยอดที่เหลือ”"
+                        : "อัปโหลดหลักฐานการโอนเงิน (มัดจำ 30%) / อัปโหลดใหม่"}
+                    </button>
 
-                {order.paymentStatus === "ชำระมัดจำแล้ว" &&
-                  order.productionStatus === "พร้อมจัดส่ง" && (
-                    <>
+                    {order.paymentProof && (
                       <button
-                        onClick={() =>
-                          setSelectedOrder({
-                            ...order,
-                            targetStatus: "ชำระทั้งหมดแล้ว",
-                          })
-                        }
+                        onClick={() => openProof(order.paymentProof)}
+                        style={{
+                          marginLeft: 12,
+                          background: "none",
+                          border: "none",
+                          color: "#0b66f0",
+                          textDecoration: "underline",
+                          cursor: "pointer",
+                          padding: 0,
+                        }}
                       >
-                        อัปโหลดหลักฐานชำระ “ยอดที่เหลือ”
+                        ดูหลักฐานการโอน
                       </button>
-                    </>
-                  )}
-
-                {order.paymentProof && (
-                  <a href={order.paymentProof} target="_blank" rel="noreferrer">
-                    ดูหลักฐานการโอน
-                  </a>
+                    )}
+                  </>
+                ) : (
+                  order.paymentProof && (
+                    <button
+                      onClick={() => openProof(order.paymentProof)}
+                      style={{
+                        background: "none",
+                        border: "none",
+                        color: "#0b66f0",
+                        textDecoration: "underline",
+                        cursor: "pointer",
+                        padding: 0,
+                      }}
+                    >
+                      ดูหลักฐานการโอน (ชำระเต็มแล้ว)
+                    </button>
+                  )
                 )}
               </div>
             </div>
