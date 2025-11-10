@@ -1,7 +1,9 @@
+const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
 const pool = require("../utils/db"); // ใช้ MySQL connection pool
 
 const SALT_ROUNDS = 10;
+const JWT_SECRET = process.env.JWT_SECRET || "your_jwt_secret_key"; // ใช้จาก .env
 
 // ฟังก์ชัน Login
 const login = async (req, res) => {
@@ -20,9 +22,12 @@ const login = async (req, res) => {
     const ok = await bcrypt.compare(password, stored);
     if (!ok) return res.status(401).json({ error: "Invalid credentials" });
 
+    // สร้าง JWT Token
+    const token = jwt.sign({ id: user.id, role: user.role }, JWT_SECRET, { expiresIn: "1h" });
+
     // ลบรหัสผ่านออกจากผลลัพธ์ก่อนส่งกลับ
     const { password: _, ...safe } = user;
-    return res.json({ user: safe });
+    return res.json({ user: safe, token });
   } catch (err) {
     console.error("Login error:", err);
     return res.status(500).json({ error: "Server error" });
@@ -56,7 +61,10 @@ const register = async (req, res) => {
       createdAt: new Date().toISOString(),
     };
 
-    return res.status(201).json({ user: newUser });
+    // สร้าง JWT Token
+    const token = jwt.sign({ id: newUser.id, role: newUser.role }, JWT_SECRET, { expiresIn: "1h" });
+
+    return res.status(201).json({ user: newUser, token });
   } catch (err) {
     console.error("Register error:", err);
     return res.status(500).json({ error: "Server error" });

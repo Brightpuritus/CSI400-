@@ -1,29 +1,21 @@
-"use client"
+"use client";
 
-import { createContext, useContext, useState, useEffect, useCallback, useMemo } from "react"
+import { createContext, useContext, useState, useEffect, useCallback, useMemo } from "react";
 
-const AuthContext = createContext(null)
+const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
-  const [user, setUser] = useState(null)
-  const [users, setUsers] = useState([])
+  const [user, setUser] = useState(null);
+  const [token, setToken] = useState(null);
 
   useEffect(() => {
-    const fetchUsers = async () => {
-      try {
-        const response = await fetch("http://localhost:5000/api/users")
-        if (response.ok) {
-          const data = await response.json()
-          setUsers(data)
-        } else {
-          console.error("Failed to fetch users")
-        }
-      } catch (error) {
-        console.error("Error fetching users:", error)
-      }
+    const storedToken = localStorage.getItem("token");
+    const storedUser = localStorage.getItem("user");
+    if (storedToken && storedUser) {
+      setToken(storedToken);
+      setUser(JSON.parse(storedUser));
     }
-    fetchUsers()
-  }, [])
+  }, []);
 
   const login = useCallback(async (email, password) => {
     try {
@@ -31,28 +23,47 @@ export function AuthProvider({ children }) {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
-      })
-      if (!response.ok) return false
-      const data = await response.json().catch(() => ({}))
-      // backend returns { user: {...} } — handle both shapes
-      const authUser = data.user || data
-      setUser(authUser)
-      return true
+      });
+      if (!response.ok) return false;
+
+      const data = await response.json();
+      setToken(data.token);
+      setUser(data.user);
+
+      // เก็บ Token และข้อมูลผู้ใช้ใน LocalStorage
+      localStorage.setItem("token", data.token);
+      localStorage.setItem("user", JSON.stringify(data.user));
+
+      return true;
     } catch (err) {
-      console.error("Auth login error:", err)
-      return false
+      console.error("Auth login error:", err);
+      return false;
     }
-  }, [])
+  }, []);
 
   const logout = useCallback(() => {
-    setUser(null)
-  }, [])
+    setToken(null);
+    setUser(null);
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+  }, []);
 
-  const value = useMemo(() => ({ user, setUser, users, setUsers, login, logout }), [user, users, login, logout])
+  const value = useMemo(() => ({ user, token, login, logout }), [user, token, login, logout]);
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
 export function useAuth() {
-  return useContext(AuthContext)
+  return useContext(AuthContext);
 }
+
+export const fetchProtectedData = async () => {
+  const { token } = useAuth();
+  const response = await fetch("http://localhost:5000/api/protected", {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+  const data = await response.json();
+  console.log(data);
+};

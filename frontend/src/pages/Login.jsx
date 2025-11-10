@@ -18,14 +18,15 @@ function Login() {
     return <Navigate to="/" replace />
   }
 
-  const handleSubmit = (e) => {
-    e.preventDefault()
-    setError("")
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError("");
 
-    if (login(email, password)) {
-      navigate("/")
+    const success = await login(email, password);
+    if (success) {
+      navigate("/");
     } else {
-      setError("อีเมลหรือรหัสผ่านไม่ถูกต้อง")
+      setError("อีเมลหรือรหัสผ่านไม่ถูกต้อง");
     }
   }
 
