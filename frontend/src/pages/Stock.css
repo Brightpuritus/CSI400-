@@ -11,7 +11,14 @@
   --font-sans: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
 }
 
-body { background: var(--bg); }
+/* ปรับปรุงสีและขนาดของข้อความ */
+body {
+  background: var(--bg);
+  color: #1f2937; /* สีข้อความหลัก */
+  font-family: var(--font-sans);
+  font-size: 16px; /* ขนาดฟอนต์เริ่มต้น */
+  line-height: 1.5; /* เพิ่มความห่างระหว่างบรรทัด */
+}
 
 .stock-page {
   padding: 28px;
@@ -106,6 +113,16 @@ body { background: var(--bg); }
   text-overflow: ellipsis;
 }
 
+/* ปรับปรุงการแสดงผลของคอลัมน์ราคา */
+.stock-table tbody td:nth-child(3) {
+  font-size: 14px; /* ขนาดข้อความในคอลัมน์ราคา */
+  color: #374151; /* สีข้อความ (สีเทาเข้ม) */
+  text-align: left; /* จัดข้อความชิดซ้าย */
+  white-space: nowrap; /* ป้องกันข้อความตัดบรรทัด */
+  overflow: hidden; /* ซ่อนข้อความที่เกินขอบ */
+  text-overflow: ellipsis; /* แสดง ... หากข้อความยาวเกินไป */
+}
+
 /* Action buttons */
 .btn-edit, .btn-delete {
   padding: 6px 10px;
@@ -145,90 +162,158 @@ body { background: var(--bg); }
   border-radius: 10px;
 }
 
-/* Modal backdrop & box */
+/* Modal backdrop */
 .modal-backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(6,8,15,0.45);
+  background: rgba(0, 0, 0, 0.6); /* เพิ่มความเข้มของพื้นหลัง */
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1100;
-  padding: 20px;
+  z-index: 1000;
+  animation: fadeInBackdrop 0.3s ease;
 }
+
+@keyframes fadeInBackdrop {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Modal box */
 .modal {
-  width: 100%;
-  max-width: 720px;
   background: var(--card);
-  padding: 18px;
-  border-radius: 12px;
+  border-radius: var(--radius);
   box-shadow: var(--shadow-lg);
+  width: 100%;
+  max-width: 480px;
+  padding: 24px;
+  animation: fadeInModal 0.3s ease;
+  color: #1f2937; /* สีข้อความใน modal */
 }
-.modal h3 {
-  margin: 0;
-  font-size: 18px;
-  font-weight: 700;
-  color: #0f172a;
+
+@keyframes fadeInModal {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Modal header */
+.modal-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  margin-bottom: 20px;
 }
+
+.modal-header h3 {
+  font-size: 22px; /* ขนาดหัวข้อใหญ่ขึ้น */
+  font-weight: 700;
+  color: #111827; /* สีเข้มขึ้นสำหรับหัวข้อ */
+}
+
 .close-btn {
-  background: transparent;
+  background: none;
   border: none;
-  font-size: 20px;
+  font-size: 24px;
   cursor: pointer;
   color: var(--muted);
+  transition: color 0.2s ease;
+}
+
+.close-btn:hover {
+  color: var(--accent);
 }
 
 /* Form grid */
 .form-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 12px;
-  margin-top: 14px;
+  gap: 16px;
 }
-.form-field { display: flex; flex-direction: column; gap: 6px; }
-.form-field label { font-size: 13px; color: #374151; font-weight: 600; }
-.input, textarea {
-  padding: 10px 12px;
-  border-radius: 8px;
-  border: 1px solid #e6e9ef;
-  font-size: 14px;
+
+.form-field {
+  display: flex;
+  flex-direction: column;
+}
+
+.form-field label {
+  font-size: 14px; /* ขนาดข้อความ label */
+  font-weight: 600;
+  color: #374151; /* สีข้อความ label */
+}
+
+.form-field input {
+  padding: 10px;
+  border: 1px solid #e5e7eb;
+  border-radius: var(--radius);
+  font-size: 14px; /* ขนาดข้อความใน input */
+  color: #111827; /* สีข้อความใน input */
+  background: #ffffff; /* พื้นหลังสีขาว */
+  transition: border-color 0.2s ease;
+}
+
+.form-field input:focus {
+  border-color: var(--accent);
   outline: none;
-  background: #fbfdff;
 }
-textarea { resize: vertical; min-height: 86px; grid-column: 1 / -1; }
-.form-error { color: var(--danger); margin-top: 8px; }
 
 /* Modal actions */
 .modal-actions {
   display: flex;
   justify-content: flex-end;
-  gap: 10px;
-  margin-top: 14px;
-  grid-column: 1 / -1;
+  gap: 12px;
+  margin-top: 20px;
 }
+
 .btn-cancel {
-  background: #f1f5f9;
-  color: #0f172a;
+  background: #f3f4f6;
+  color: #374151;
   border: none;
-  padding: 8px 12px;
-  border-radius: 8px;
+  padding: 10px 16px;
+  border-radius: var(--radius);
   cursor: pointer;
   font-weight: 600;
+  font-size: 14px; /* ขนาดข้อความในปุ่ม */
+  transition: background 0.2s ease;
 }
+
+.btn-cancel:hover {
+  background: #e5e7eb;
+}
+
 .btn-confirm {
-  background: linear-gradient(90deg,var(--accent),#1e90ff);
+  background: var(--accent);
   color: #fff;
   border: none;
-  padding: 8px 14px;
-  border-radius: 8px;
+  padding: 10px 16px;
+  border-radius: var(--radius);
   cursor: pointer;
-  font-weight: 700;
+  font-weight: 600;
+  font-size: 14px; /* ขนาดข้อความในปุ่ม */
+  transition: background 0.2s ease, box-shadow 0.2s ease;
+}
+
+.btn-confirm:hover {
+  background: #0a5adf;
+  box-shadow: 0 8px 24px rgba(11, 102, 240, 0.3);
 }
 
 /* Responsive tweaks */
+@media (max-width: 768px) {
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 @media (max-width: 860px) {
   .form-grid { grid-template-columns: 1fr; }
   .stock-table { min-width: 0; }

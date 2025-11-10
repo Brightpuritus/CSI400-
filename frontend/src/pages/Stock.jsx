@@ -115,19 +115,37 @@ export default function Stock() {
       {showModal && (
         <div className="modal-backdrop" onClick={() => setShowModal(false)}>
           <div className="modal" onClick={(e) => e.stopPropagation()}>
-            <h3>เพิ่มสินค้าใหม่</h3>
-            <form onSubmit={handleCreate}>
-              <label>ชื่อสินค้า</label>
-              <input name="name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required />
-              <label>ราคา</label>
-              <input name="price" type="number" value={form.price} onChange={(e) => setForm({ ...form, price: e.target.value })} required />
-              <label>จำนวนในสต็อก</label>
-              <input name="stock" type="number" value={form.stock} onChange={(e) => setForm({ ...form, stock: e.target.value })} required />
-              <label>จำนวนต่อ 1 ลัง (กระป๋อง)</label>
-              <input name="packSize" type="number" value={form.packSize} onChange={(e) => setForm({ ...form, packSize: e.target.value })} placeholder="เช่น 24" />
-              <label>URL รูปภาพ</label>
-              <input name="imageUrl" value={form.imageUrl} onChange={(e) => setForm({ ...form, imageUrl: e.target.value })} />
-              <button type="submit" disabled={isSubmitting}>ยืนยัน</button>
+            <div className="modal-header">
+              <h3>เพิ่มสินค้าใหม่</h3>
+              <button className="close-btn" onClick={() => setShowModal(false)}>×</button>
+            </div>
+            <form onSubmit={handleCreate} className="modal-form">
+              <div className="form-grid">
+                <div className="form-field">
+                  <label>ชื่อสินค้า</label>
+                  <input name="name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required />
+                </div>
+                <div className="form-field">
+                  <label>ราคา</label>
+                  <input name="price" type="number" value={form.price} onChange={(e) => setForm({ ...form, price: e.target.value })} required />
+                </div>
+                <div className="form-field">
+                  <label>จำนวนในสต็อก</label>
+                  <input name="stock" type="number" value={form.stock} onChange={(e) => setForm({ ...form, stock: e.target.value })} required />
+                </div>
+                <div className="form-field">
+                  <label>จำนวนต่อ 1 ลัง (กระป๋อง)</label>
+                  <input name="packSize" type="number" value={form.packSize} onChange={(e) => setForm({ ...form, packSize: e.target.value })} placeholder="เช่น 24" />
+                </div>
+                <div className="form-field">
+                  <label>URL รูปภาพ</label>
+                  <input name="imageUrl" value={form.imageUrl} onChange={(e) => setForm({ ...form, imageUrl: e.target.value })} />
+                </div>
+              </div>
+              <div className="modal-actions">
+                <button type="button" className="btn-cancel" onClick={() => setShowModal(false)}>ยกเลิก</button>
+                <button type="submit" className="btn-confirm" disabled={isSubmitting}>ยืนยัน</button>
+              </div>
             </form>
           </div>
         </div>
@@ -137,19 +155,37 @@ export default function Stock() {
       {showEditModal && editingProduct && (
         <div className="modal-backdrop" onClick={() => setShowEditModal(false)}>
           <div className="modal" onClick={(e) => e.stopPropagation()}>
-            <h3>แก้ไขสินค้า</h3>
-            <form onSubmit={handleEditSubmit}>
-              <label>ชื่อสินค้า</label>
-              <input name="name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required />
-              <label>ราคา</label>
-              <input name="price" type="number" value={form.price} onChange={(e) => setForm({ ...form, price: e.target.value })} required />
-              <label>จำนวนในสต็อก</label>
-              <input name="stock" type="number" value={form.stock} onChange={(e) => setForm({ ...form, stock: e.target.value })} required />
-              <label>จำนวนต่อ 1 ลัง (กระป๋อง)</label>
-              <input name="packSize" type="number" value={form.packSize} onChange={(e) => setForm({ ...form, packSize: e.target.value })} placeholder="เช่น 24" />
-              <label>URL รูปภาพ</label>
-              <input name="imageUrl" value={form.imageUrl} onChange={(e) => setForm({ ...form, imageUrl: e.target.value })} />
-              <button type="submit" disabled={isSubmitting}>ยืนยัน</button>
+            <div className="modal-header">
+              <h3>แก้ไขสินค้า</h3>
+              <button className="close-btn" onClick={() => setShowEditModal(false)}>×</button>
+            </div>
+            <form onSubmit={handleEditSubmit} className="modal-form">
+              <div className="form-grid">
+                <div className="form-field">
+                  <label>ชื่อสินค้า</label>
+                  <input name="name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required />
+                </div>
+                <div className="form-field">
+                  <label>ราคา</label>
+                  <input name="price" type="number" value={form.price} onChange={(e) => setForm({ ...form, price: e.target.value })} required />
+                </div>
+                <div className="form-field">
+                  <label>จำนวนในสต็อก</label>
+                  <input name="stock" type="number" value={form.stock} onChange={(e) => setForm({ ...form, stock: e.target.value })} required />
+                </div>
+                <div className="form-field">
+                  <label>จำนวนต่อ 1 ลัง (กระป๋อง)</label>
+                  <input name="packSize" type="number" value={form.packSize} onChange={(e) => setForm({ ...form, packSize: e.target.value })} placeholder="เช่น 24" />
+                </div>
+                <div className="form-field">
+                  <label>URL รูปภาพ</label>
+                  <input name="imageUrl" value={form.imageUrl} onChange={(e) => setForm({ ...form, imageUrl: e.target.value })} />
+                </div>
+              </div>
+              <div className="modal-actions">
+                <button type="button" className="btn-cancel" onClick={() => setShowEditModal(false)}>ยกเลิก</button>
+                <button type="submit" className="btn-confirm" disabled={isSubmitting}>ยืนยัน</button>
+              </div>
             </form>
           </div>
         </div>
