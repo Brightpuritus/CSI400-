@@ -7,6 +7,7 @@ const AuthContext = createContext(null);
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(null);
+  const [users, setUsers] = useState([]); // เพิ่ม state สำหรับ users
 
   useEffect(() => {
     const storedToken = localStorage.getItem("token");
@@ -48,7 +49,7 @@ export function AuthProvider({ children }) {
     localStorage.removeItem("user");
   }, []);
 
-  const value = useMemo(() => ({ user, token, login, logout }), [user, token, login, logout]);
+  const value = useMemo(() => ({ user, token, login, logout, users, setUsers }), [user, token, login, logout, users]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
