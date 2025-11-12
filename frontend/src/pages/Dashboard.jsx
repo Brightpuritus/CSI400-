@@ -4,6 +4,7 @@ import { useState, useEffect } from "react"
 import { useAuth } from "../context/AuthContext"
 import { useDataStore } from "../context/DataStore"
 import { useNavigate } from "react-router-dom"
+import * as XLSX from "xlsx"; // นำเข้าไลบรารี xlsx
 import "./Dashboard.css"
 
 export default function Dashboard() {
@@ -50,11 +51,12 @@ export default function Dashboard() {
     })
   }
 
-  const filteredOrders = filterOrdersByDate(completedOrders)
+  const filteredOrders2 = filterOrdersByDate(completedOrders)
+  const filteredOrders = filterOrdersByDate(orders);
 
   // Product sales data
   const productSales = {}
-  filteredOrders.forEach((order) => {
+  filteredOrders2.forEach((order) => {
     (order.items || []).forEach((item) => {
       if (!productSales[item.productName]) {
         productSales[item.productName] = { quantity: 0, revenue: 0 }
@@ -87,6 +89,29 @@ export default function Dashboard() {
     link.click()
   }
 
+  // Export to Excel
+  const exportToExcel = () => {
+    // สร้างข้อมูลสำหรับ Excel
+    const headers = ["วันที่", "เลขที่ออเดอร์", "ลูกค้า", "ยอดรวม", "VAT 7%", "สุทธิ", "สถานะ"];
+    const rows = filteredOrders.map((order) => ({
+      วันที่: order.createdAt ? new Date(order.createdAt).toLocaleDateString("th-TH") : "N/A",
+      เลขที่ออเดอร์: order.id || "N/A",
+      ลูกค้า: order.customerName || "N/A",
+      ยอดรวม: `฿${order.subtotal ? order.subtotal.toLocaleString("th-TH", { minimumFractionDigits: 2 }) : "0.00"}`,
+      "VAT 7%": `฿${(order.vat || 0).toLocaleString("th-TH", { minimumFractionDigits: 2 })}`,
+      สุทธิ: `฿${(order.totalWithVat || 0).toLocaleString("th-TH", { minimumFractionDigits: 2 })}`,
+      สถานะ: order.status || "N/A",
+    }));
+
+    // สร้างเวิร์กชีตและเวิร์กบุ๊ก
+    const worksheet = XLSX.utils.json_to_sheet(rows, { header: headers });
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Orders");
+
+    // สร้างไฟล์ Excel และดาวน์โหลด
+    XLSX.writeFile(workbook, `orders-report-${new Date().toISOString().split("T")[0]}.xlsx`);
+  };
+
   return (
     <div className="dashboard-container">
       <div className="dashboard-header">
@@ -101,8 +126,8 @@ export default function Dashboard() {
             <option value="week">7 วันที่ผ่านมา</option>
             <option value="month">เดือนนี้</option>
           </select>
-          <button onClick={exportToCSV} className="export-btn">
-            ส่งออก CSV
+          <button onClick={exportToExcel} className="export-btn">
+            ส่งออก Excel
           </button>
         </div>
       </div>
@@ -135,7 +160,7 @@ export default function Dashboard() {
         <div className="stat-card stat-orders">
           <div className="stat-icon">📦</div>
           <div className="stat-content">
-            <div className="stat-label">จำนวนออเดอร์</div>
+            <div className="stat-label">จำนวนออเดอร์เสร็จสิ้น</div>
             <div className="stat-value">{totalOrders}</div>
           </div>
         </div>
@@ -217,7 +242,7 @@ export default function Dashboard() {
                   const net = order.totalWithVat || 0;
                   return (
                     <tr key={order.id}>
-                      <td>{order.orderDate ? new Date(order.orderDate).toLocaleDateString("th-TH") : "N/A"}</td>
+                      <td>{order.createdAt ? new Date(order.createdAt).toLocaleDateString("th-TH") : "N/A"}</td>
                       <td>{order.id || "N/A"}</td>
                       <td>{order.customerName || "N/A"}</td>
                       <td>฿{order.subtotal ? order.subtotal.toLocaleString("th-TH", { minimumFractionDigits: 2 }) : "0.00"}</td>

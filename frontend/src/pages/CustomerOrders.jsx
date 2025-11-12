@@ -236,7 +236,7 @@ function CustomerOrders() {
                 <div className="order-detail-item">
                   <Calendar size={16} />
                   <span>
-                  <span>สั่งซื้อเมื่อ: {order.createdAt || "-"}</span>
+                  <span>สั่งซื้อเมื่อ: <td>{order.createdAt ? new Date(order.createdAt).toLocaleDateString("th-TH") : "-"}</td></span>
                   </span>
                 </div>
                 <div className="order-detail-item">
