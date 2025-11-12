@@ -227,7 +227,7 @@ function CustomerOrders() {
                   <span
                     className={`status-badge ${getStatusColor(order.status)}`}
                   >
-                    {order.productionStatus}
+                    {order.deliveryStatus ? order.deliveryStatus : order.productionStatus}
                   </span>
                 </div>
               </div>
