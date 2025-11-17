@@ -5,6 +5,8 @@ import { useNavigate, Link } from "react-router-dom"
 import { User, Mail, Lock, AlertCircle, CheckCircle } from "lucide-react"
 import "./Login.css"
 
+const API_URL = import.meta.env.VITE_API_URL;
+
 function Register() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")

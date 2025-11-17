@@ -5,6 +5,9 @@ import { useDataStore } from "../context/DataStore";
 import { Factory, Package, Clock, CheckCircle } from "lucide-react";
 import "./Production.css";
 
+const API_URL = import.meta.env.VITE_API_URL;
+
+
 function Production() {
   const { orders, updateOrderStatus, setOrders } = useDataStore();
   const [activeTab, setActiveTab] = useState("pending");
