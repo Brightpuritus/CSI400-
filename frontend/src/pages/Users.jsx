@@ -6,6 +6,8 @@ import { useNavigate } from "react-router-dom"
 import { useDataStore } from "../context/DataStore"
 import "./Users.css"
 
+const API_URL = import.meta.env.VITE_API_URL;
+
 export default function Users() {
   const { user, users, setUsers } = useAuth(); // เพิ่ม setUsers
   const navigate = useNavigate()
@@ -39,7 +41,7 @@ export default function Users() {
 
   const fetchUsers = async () => {
     try {
-      const res = await fetch("http://localhost:5000/api/users"); // URL ของ API สำหรับดึงข้อมูลผู้ใช้
+      const res = await fetch(`${API_URL}/api/users`); // URL ของ API สำหรับดึงข้อมูลผู้ใช้
       if (!res.ok) {
         throw new Error("Failed to fetch users");
       }

@@ -3,6 +3,7 @@
 import { createContext, useContext, useState, useEffect, useCallback, useMemo } from "react";
 
 const AuthContext = createContext(null);
+const API_URL = import.meta.env.VITE_API_URL;
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
@@ -20,7 +21,7 @@ export function AuthProvider({ children }) {
 
   const login = useCallback(async (email, password) => {
     try {
-      const response = await fetch("http://localhost:5000/api/auth/login", {
+      const response = await fetch(`${API_URL}/api/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
@@ -60,7 +61,7 @@ export function useAuth() {
 
 export const fetchProtectedData = async () => {
   const { token } = useAuth();
-  const response = await fetch("http://localhost:5000/api/protected", {
+  const response = await fetch(`${API_URL}/api/protected`, {
     headers: {
       Authorization: `Bearer ${token}`,
     },

@@ -5,8 +5,10 @@ import { useDataStore } from "../context/DataStore";
 import { Truck, Package, CheckCircle, X } from "lucide-react";
 import "./Delivery.css";
 
+const API_URL = import.meta.env.VITE_API_URL; // ใช้ API_URL จาก environment variable
+
 function Delivery() {
-  const { orders, updateDeliveryInfo, decreaseStock, setOrders } = useDataStore(); // ถ้าจะใช้แยกส่งเป็นชิ้น ค่อยเปิด updateItemDelivery
+  const { orders, updateDeliveryInfo, decreaseStock, setOrders } = useDataStore();
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [trackingNumber, setTrackingNumber] = useState("");
   const [deliveryStatus, setDeliveryStatus] = useState("");
@@ -22,10 +24,10 @@ function Delivery() {
       alert("กรุณากรอกเลขพัสดุ");
       return;
     }
-  
+
     try {
       // เรียก API backend เพื่ออัปเดตออเดอร์และสต๊อก
-      const response = await fetch("http://localhost:5000/api/delivery", {
+      const response = await fetch(`${API_URL}/api/delivery`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -34,21 +36,21 @@ function Delivery() {
           deliveryStatus,
         }),
       });
-  
+
       if (!response.ok) throw new Error("Failed to update delivery info");
-  
+
       const updatedOrder = await response.json();
-  
+
       // อัปเดต state orders ทันที
       setOrders((prevOrders) =>
         prevOrders.map((o) => (o.id === updatedOrder.id ? updatedOrder : o))
       );
-  
+
       alert("อัปเดตข้อมูลการจัดส่งสำเร็จ");
-  
+
       // ปิด modal
       setSelectedOrder(null);
-  
+
       // เคลียร์เลขพัสดุหลังอัปเดต
       setTrackingNumber("");
     } catch (err) {
@@ -56,9 +58,6 @@ function Delivery() {
       alert("เกิดข้อผิดพลาดในการอัปเดตข้อมูลการจัดส่ง");
     }
   };
-  
-  
-  
 
   const openDialog = (order) => {
     setSelectedOrder(order);

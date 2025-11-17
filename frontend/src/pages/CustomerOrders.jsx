@@ -7,6 +7,8 @@ import { Plus, Package, Calendar, DollarSign } from "lucide-react";
 import "./CustomerOrders.css";
 import { useState } from "react";
 
+const API_URL = import.meta.env.VITE_API_URL;
+
 function CustomerOrders() {
   const { user } = useAuth();
   const { orders, updatePaymentStatus } = useDataStore();
@@ -16,7 +18,7 @@ function CustomerOrders() {
   // ช่วยแปลง path ที่เก็บใน DB เป็น URL เต็ม (หรือใช้ blob: ได้เลย)
   const toFullUrl = (u) => {
     if (!u) return null;
-    return u.startsWith("http") || u.startsWith("blob:") ? u : `http://localhost:5000${u}`;
+    return u.startsWith("http") || u.startsWith("blob:") ? u : `${API_URL}${u}`;
   };
 
   // เปิดหลักฐานในแท็บใหม่ (รองรับ blob: และ relative path)

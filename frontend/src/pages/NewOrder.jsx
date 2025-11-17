@@ -11,6 +11,7 @@ const CASE_SIZE = 24; // 1 ลัง มีกี่กระป๋อง
 const MIN_CASES = 10; // ขั้นต่ำเป็นจำนวน "ลัง"
 const MIN_TOTAL_BAHT = 0; // หรือขั้นต่ำเป็นยอดเงิน (0 = ไม่ใช้)
 const PICKUP_TEXT = "รับด้วยตนเอง";
+const API_URL = import.meta.env.VITE_API_URL;
 
 function NewOrder() {
   const { user } = useAuth();
@@ -38,9 +39,9 @@ function NewOrder() {
       setLoadingProducts(true);
       // พยายามเรียกแบบ relative ก่อน แล้ว fallback ไปที่พอร์ตที่เป็นไปได้
       const urls = [
-        "/api/products",
-        "http://localhost:5000/api/products",
-        "http://localhost:4000/api/products",
+        `/api/products`,
+        `${API_URL}/api/products`,
+        `${API_URL}/api/products`,
       ];
       for (const url of urls) {
         try {

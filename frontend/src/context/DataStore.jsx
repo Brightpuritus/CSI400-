@@ -3,6 +3,7 @@
 import { createContext, useContext, useState, useEffect } from "react"
 
 const DataStoreContext = createContext(null)
+const API_URL = import.meta.env.VITE_API_URL;
 
 export function DataStoreProvider({ children }) {
   const [products, setProducts] = useState([])
@@ -17,7 +18,7 @@ export function DataStoreProvider({ children }) {
     const fetchProducts = async () => {
       setLoading(true);
       try {
-        const response = await fetch("http://localhost:5000/api/products");
+        const response = await fetch(`${API_URL}/api/products`);
         const data = await response.json();
         setProducts(data);
       } catch (err) {
@@ -30,7 +31,7 @@ export function DataStoreProvider({ children }) {
 
     const fetchOrders = async () => {
       try {
-        const response = await fetch("http://localhost:5000/api/orders");
+        const response = await fetch(`${API_URL}/api/orders`);
         if (!response.ok) throw new Error("Failed to fetch orders");
         const data = await response.json();
         setOrders(data);
@@ -41,7 +42,7 @@ export function DataStoreProvider({ children }) {
 
     const fetchDeliveries = async () => {
       try {
-        const response = await fetch("http://localhost:5000/api/delivery");
+        const response = await fetch(`${API_URL}/api/delivery`);
         const data = await response.json();
         setDeliveries(data);
       } catch (err) {
@@ -57,7 +58,7 @@ export function DataStoreProvider({ children }) {
   async function loadProducts() {
     setLoading(true);
     try {
-      const res = await fetch("http://localhost:5000/api/products");
+      const res = await fetch(`${API_URL}/api/products`);
       const data = await res.json();
       setProducts(Array.isArray(data) ? data : []);
     } catch (err) {
@@ -70,7 +71,7 @@ export function DataStoreProvider({ children }) {
 
   const createProduct = async (product) => {
     try {
-      const res = await fetch("http://localhost:5000/api/products", {
+      const res = await fetch(`${API_URL}/api/products`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(product),
@@ -86,7 +87,7 @@ export function DataStoreProvider({ children }) {
 
   const updateProduct = async (id, updatedData) => {
     try {
-      const res = await fetch(`http://localhost:5000/api/products/${id}`, {
+      const res = await fetch(`${API_URL}/api/products/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(updatedData),
@@ -104,7 +105,7 @@ export function DataStoreProvider({ children }) {
 
   const deleteProduct = async (id) => {
     try {
-      const res = await fetch(`http://localhost:5000/api/products/${id}`, {
+      const res = await fetch(`${API_URL}/api/products/${id}`, {
         method: "DELETE",
       });
       if (!res.ok) throw new Error("Failed to delete product");
@@ -116,7 +117,7 @@ export function DataStoreProvider({ children }) {
   };
 
   const addOrder = async (order) => {
-    const response = await fetch("http://localhost:5000/api/orders", {
+    const response = await fetch(`${API_URL}/api/orders`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(order),
@@ -129,7 +130,7 @@ export function DataStoreProvider({ children }) {
   // อัปเดต productionStatus + deliveryStatus + stock
   const updateOrderStatus = async (orderId, productionStatus) => {
     try {
-      const res = await fetch(`http://localhost:5000/api/orders/${order.id}/status`, {
+      const res = await fetch(`${API_URL}/api/orders/${order.id}/status`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ productionStatus: "พร้อมจัดส่ง" }),
@@ -157,7 +158,7 @@ export function DataStoreProvider({ children }) {
   async function updateProductionStatus(orderId, nextStatus) {
     try {
       console.log("Updating production status for order:", orderId, "to:", nextStatus);
-      const response = await fetch(`http://localhost:5000/api/orders/${orderId}`, {
+      const response = await fetch(`${API_URL}/api/orders/${orderId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ productionStatus: nextStatus }),
@@ -187,7 +188,7 @@ export function DataStoreProvider({ children }) {
 
   const updateStock = async (items) => {
     try {
-      const res = await fetch("http://localhost:5000/api/products/update-stock", {
+      const res = await fetch(`${API_URL}/api/products/update-stock`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ items }), // ส่งรายการสินค้าที่ต้องการอัปเดต stock
@@ -208,7 +209,7 @@ export function DataStoreProvider({ children }) {
 
   const decreaseStock = async (items) => {
     try {
-      const res = await fetch("http://localhost:5000/api/products/update-stock", {
+      const res = await fetch(`${API_URL}/api/products/update-stock`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ items }), // ส่งรายการสินค้าที่ต้องการลด stock
@@ -229,7 +230,7 @@ export function DataStoreProvider({ children }) {
 
   const updateDeliveryInfo = async (orderId, trackingNumber, deliveryStatus) => {
     try {
-      const response = await fetch("http://localhost:5000/api/delivery", {
+      const response = await fetch(`${API_URL}/api/delivery`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ id: orderId, trackingNumber, deliveryStatus }),
@@ -242,7 +243,7 @@ export function DataStoreProvider({ children }) {
       const updatedOrder = await response.json();
 
       // ดึงข้อมูลใหม่จาก Backend เพื่ออัปเดต State
-      const ordersResponse = await fetch("http://localhost:5000/api/orders");
+      const ordersResponse = await fetch(`${API_URL}/api/orders`);
       if (!ordersResponse.ok) {
         throw new Error("Failed to fetch updated orders");
       }
@@ -255,7 +256,7 @@ export function DataStoreProvider({ children }) {
   };
 
   const updatePaymentStatus = async (orderId, paymentStatus, paymentProof) => {
-    const response = await fetch(`http://localhost:5000/api/orders/${orderId}/payment`, {
+    const response = await fetch(`${API_URL}/api/orders/${orderId}/payment`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ paymentStatus, paymentProof }),
@@ -266,7 +267,7 @@ export function DataStoreProvider({ children }) {
     }
 
     // ดึงข้อมูลคำสั่งซื้อใหม่จาก Backend
-    const updatedOrdersResponse = await fetch("http://localhost:5000/api/orders");
+    const updatedOrdersResponse = await fetch(`${API_URL}/api/orders`);
     if (!updatedOrdersResponse.ok) {
       throw new Error("Failed to fetch updated orders");
     }
@@ -277,7 +278,7 @@ export function DataStoreProvider({ children }) {
 
   const confirmPayment = async (orderId, paymentStatus) => {
     try {
-      const response = await fetch(`http://localhost:5000/api/orders/${orderId}/confirm-payment`, {
+      const response = await fetch(`${API_URL}/api/orders/${orderId}/confirm-payment`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ paymentStatus }), // ✅ ส่งสถานะไป backend
@@ -300,7 +301,7 @@ export function DataStoreProvider({ children }) {
 
   async function updateUserRole(email, newRole) {
     try {
-      const res = await fetch("http://localhost:5000/api/users/update-role", {
+      const res = await fetch(`${API_URL}/api/users/update-role`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, role: newRole }),
@@ -326,7 +327,7 @@ export function DataStoreProvider({ children }) {
 
   async function deleteUser(email) {
     try {
-      const res = await fetch(`http://localhost:5000/api/users/delete/${email}`, {
+      const res = await fetch(`${API_URL}/api/users/delete/${email}`, {
         method: "DELETE",
       });
 

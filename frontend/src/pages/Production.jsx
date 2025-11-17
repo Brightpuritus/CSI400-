@@ -31,7 +31,7 @@ function Production() {
   const move = async (order, target) => {
   try {
     const response = await fetch(
-      `http://localhost:5000/api/orders/${order.id}/status`,
+      `${API_URL}/api/orders/${order.id}/status`,
       {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
@@ -43,7 +43,7 @@ function Production() {
     console.log("Order updated");
 
     // ดึง order list ใหม่จาก backend
-    const ordersRes = await fetch("http://localhost:5000/api/orders");
+    const ordersRes = await fetch(`${API_URL}/api/orders`);
     const updatedOrders = await ordersRes.json();
 
     // สมมติคุณเก็บ orders ใน useState หรือ context
