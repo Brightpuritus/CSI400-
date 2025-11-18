@@ -26,16 +26,40 @@ export default function Users() {
     setShowPopup(false); // ปิด popup
   };
 
-  const handleChangeRole = async (user, newRole) => {
-    await updateUserRole(user.email, newRole); // เรียกใช้ฟังก์ชันจาก DataStore หรือ AuthContext
-    await fetchUsers(); // ดึงข้อมูลผู้ใช้ใหม่
-    closePopup();
-    console.log(`เปลี่ยน Role ของ ${user.name} เป็น ${newRole}`);
+  const handleChangeRole = async (userToChange, newRole) => {
+    // ป้องกันไม่ให้เปลี่ยน role ตัวเอง
+    if (user.email === userToChange.email) {
+      alert("คุณไม่สามารถเปลี่ยน Role ของตัวเองได้");
+      return;
+    }
+  
+    try {
+      await updateUserRole(userToChange.email, newRole); // เรียกใช้ฟังก์ชันจาก DataStore หรือ AuthContext
+      await fetchUsers(); // ดึงข้อมูลผู้ใช้ใหม่
+      closePopup();
+      console.log(`เปลี่ยน Role ของ ${userToChange.name} เป็น ${newRole}`);
+    } catch (err) {
+      console.error("Error changing role:", err);
+      alert("เกิดข้อผิดพลาดในการเปลี่ยน Role");
+    }
   };
 
-  const handleDeleteUser = (user) => {
-    deleteUser(user.email); // เรียกใช้ฟังก์ชันจาก DataStore หรือ AuthContext
-    console.log(`ลบผู้ใช้: ${user.name}`);
+  const handleDeleteUser = (userToDelete) => {
+    // ป้องกันไม่ให้ Admin และ Manager ลบตัวเอง
+    if (user.email === userToDelete.email) {
+      alert("คุณไม่สามารถลบตัวเองได้");
+      return;
+    }
+
+    // ป้องกันไม่ให้ Manager ลบ Admin
+    if (user.role === "manager" && userToDelete.role === "admin") {
+      alert("Manager ไม่สามารถลบ Admin ได้");
+      return;
+    }
+
+    // เรียกใช้ฟังก์ชัน deleteUser
+    deleteUser(userToDelete.email);
+    console.log(`ลบผู้ใช้: ${userToDelete.name}`);
     closePopup();
   };
 

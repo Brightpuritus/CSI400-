@@ -337,7 +337,21 @@ function CustomerOrders() {
                   )}
                 </div>
               )}
-
+              {/* ปุ่มดูใบเสร็จ (สร้างจากข้อมูลคำสั่งซื้อในฝั่ง client) */}
+              <button
+                      onClick={() => openReceipt(order)}
+                      style={{
+                        marginLeft: 12,
+                        background: "none",
+                        border: "none",
+                        color: "#0b66f0",
+                        textDecoration: "underline",
+                        cursor: "pointer",
+                        padding: 0,
+                      }}
+                    >
+                      ดูใบเสร็จ
+                    </button>
               <div className="payment-actions">
                 {/* แสดงปุ่มอัปโหลดจนกว่า paymentStatus จะเป็น "ชำระทั้งหมดแล้ว" */}
                 {order.paymentStatus !== "ชำระทั้งหมดแล้ว" ? (
@@ -375,21 +389,7 @@ function CustomerOrders() {
                       </button>
                     )}
 
-                    {/* ปุ่มดูใบเสร็จ (สร้างจากข้อมูลคำสั่งซื้อในฝั่ง client) */}
-                    <button
-                      onClick={() => openReceipt(order)}
-                      style={{
-                        marginLeft: 12,
-                        background: "none",
-                        border: "none",
-                        color: "#0b66f0",
-                        textDecoration: "underline",
-                        cursor: "pointer",
-                        padding: 0,
-                      }}
-                    >
-                      ดูใบเสร็จ
-                    </button>
+                    
                   </>
                 ) : (
                   order.paymentProof && (

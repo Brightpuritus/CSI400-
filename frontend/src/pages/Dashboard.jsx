@@ -192,23 +192,37 @@ export default function Dashboard() {
           <div className="status-stats">
             <div className="status-item">
               <div className="status-label">รอดำเนินการ</div>
-              <div className="status-value">{orders.filter((o) => o.status === "รอดำเนินการ").length}</div>
+              <div className="status-value">
+                {orders.filter((o) => o.status === "รอดำเนินการ").length}
+              </div>
             </div>
             <div className="status-item">
               <div className="status-label">กำลังผลิต</div>
-              <div className="status-value">{orders.filter((o) => o.productionStatus === "กำลังผลิต").length}</div>
+              <div className="status-value">
+                {orders.filter((o) => o.productionStatus === "กำลังผลิต").length}
+              </div>
             </div>
             <div className="status-item">
               <div className="status-label">พร้อมจัดส่ง</div>
-              <div className="status-value">{orders.filter((o) => o.productionStatus === "พร้อมจัดส่ง").length}</div>
+              <div className="status-value">
+                {orders.filter(
+                  (o) =>
+                    o.productionStatus === "พร้อมจัดส่ง" &&
+                    o.status !== "เสร็จสิ้น"
+                ).length}
+              </div>
             </div>
             <div className="status-item">
               <div className="status-label">กำลังจัดส่ง</div>
-              <div className="status-value">{orders.filter((o) => o.deliveryStatus === "กำลังจัดส่ง").length}</div>
+              <div className="status-value">
+                {orders.filter((o) => o.deliveryStatus === "กำลังจัดส่ง").length}
+              </div>
             </div>
             <div className="status-item">
               <div className="status-label">เสร็จสิ้น</div>
-              <div className="status-value">{orders.filter((o) => o.status === "เสร็จสิ้น").length}</div>
+              <div className="status-value">
+                {orders.filter((o) => o.status === "เสร็จสิ้น").length}
+              </div>
             </div>
           </div>
         </div>
